@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0A0A0A" />
+
+    <!-- SEO -->
+    <meta name="description"  content="Style Gym — Gimnasio moderno con clases grupales, entrenadores certificados y seguimiento de progreso. Únete hoy." />
+    <meta name="keywords"     content="gimnasio, fitness, clases, spinning, yoga, crossfit, membresía" />
+    <meta name="author"       content="Style Gym" />
+    <meta name="robots"       content="index, follow" />
+
+    <!-- Open Graph (compartir en redes) -->
+    <meta property="og:title"       content="@ViewData["Title"]" />
+    <meta property="og:description" content="Entrena con los mejores instructores. Muévete sin límites." />
+    <meta property="og:type"        content="website" />
+    <meta property="og:locale"      content="es_PE" />
+
+    <title>@ViewData["Title"]</title>
+
+    <link rel="stylesheet" href="~/css/vortex.css" asp-append-version="true" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="64x64" href="/images/favicon.png" />
+    <link rel="shortcut icon" type="image/png" href="/images/favicon.png" />
+
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/dd3d90ac36.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <!-- Toast data desde TempData -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div id="toast-data" data-message="@TempData["SuccessMessage"]" data-type="success" style="display:none;"></div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div id="toast-data" data-message="@TempData["ErrorMessage"]" data-type="error" style="display:none;"></div>
+    }
+
+    <!-- ── Navbar ── -->
+    <nav class="navbar-vortex">
+        <a href="/" class="navbar-logo">
+            <img src="/images/stylegym_t.png" alt="Style Gym" style="height:36px; border-radius:6px; vertical-align:middle;">
+        </a>
+
+        <!-- Links escritorio -->
+        <ul class="navbar-links">
+            <li><a href="#servicios">Servicios</a></li>
+            <li><a href="#clases">Clases</a></li>
+            <li><a href="#planes">Planes</a></li>
+            <li><a href="#testimonios">Testimonios</a></li>
+        </ul>
+
+        <!-- Botones escritorio -->
+        <div class="navbar-cta">
+            @if (Context.Session.GetInt32("SocioId") != null)
+            {
+                <a asp-controller="Dashboard" asp-action="Index" class="btn-outline">Mi panel</a>
+                <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn-primary" style="border:none; cursor:pointer;">Salir</button>
+                </form>
+            }
+            else
+            {
+                <a asp-controller="Account" asp-action="Login"    class="btn-outline">Iniciar sesión</a>
+                <a asp-controller="Account" asp-action="Register" class="btn-primary">Registrarse</a>
+            }
+        </div>
+
+        <!-- Botón hamburguesa -->
+        <button class="navbar-hamburger" id="hamburgerBtn" aria-label="Abrir menú">
+            <span></span><span></span><span></span>
+        </button>
+    </nav>
+
+    <!-- Menú móvil -->
+    <div class="navbar-mobile-menu" id="mobileMenu">
+        <a href="#servicios"   class="mobile-link">Servicios</a>
+        <a href="#clases"      class="mobile-link">Clases</a>
+        <a href="#planes"      class="mobile-link">Planes</a>
+        <a href="#testimonios" class="mobile-link">Testimonios</a>
+        <div class="navbar-mobile-cta">
+            <a asp-controller="Account" asp-action="Login"    class="btn-outline">Iniciar sesión</a>
+            <a asp-controller="Account" asp-action="Register" class="btn-primary">Registrarse gratis</a>
+        </div>
+    </div>
+
+    <!-- ── Contenido ── -->
+    <main>@RenderBody()</main>
+
+    <!-- ── Footer ── -->
+    <footer class="footer">
+        <div class="footer-logo">
+            <img src="/images/stylegym_t.png" alt="Style Gym" style="height:24px; border-radius:4px; vertical-align:middle; margin-right:6px;">
+            Style Gym
+        </div>
+        <p>© 2026 Style Gym. Todos los derechos reservados.</p>
+        <ul class="footer-links">
+            <li><a href="#servicios">Servicios</a></li>
+            <li><a href="#planes">Planes</a></li>
+            <li><a href="#">Privacidad</a></li>
+            <li><a href="#">Contacto</a></li>
+        </ul>
+    </footer>
+
+    <!-- Scripts -->
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/js/vortex.js" asp-append-version="true"></script>
+    <script>
+        const btn  = document.getElementById('hamburgerBtn');
+        const menu = document.getElementById('mobileMenu');
+        btn.addEventListener('click', () => {
+            btn.classList.toggle('open');
+            menu.classList.toggle('open');
+        });
+        document.querySelectorAll('.mobile-link').forEach(l => l.addEventListener('click', () => {
+            btn.classList.remove('open');
+            menu.classList.remove('open');
+        }));
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

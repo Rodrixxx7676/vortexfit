@@ -1,0 +1,29 @@
+@model ErrorViewModel
+@{
+    ViewData["Title"] = "Error — Style Gym";
+    Layout = "_Layout";
+}
+
+<div class="error-page">
+    <div class="error-glow"></div>
+    <div class="error-content">
+        <div class="error-code">500</div>
+        <h1 class="error-title">Algo salió mal</h1>
+        <p class="error-desc">
+            Ocurrió un error inesperado. Nuestro equipo ya fue notificado.<br>
+            Intenta de nuevo en unos momentos.
+        </p>
+
+        @if (Model?.ShowRequestId == true)
+        {
+            <p class="error-request-id">
+                ID de solicitud: <code>@Model.RequestId</code>
+            </p>
+        }
+
+        <div class="error-actions">
+            <a href="/" class="btn-primary">Volver al inicio</a>
+            <a href="javascript:history.back()" class="btn-outline">← Página anterior</a>
+        </div>
+    </div>
+</div>

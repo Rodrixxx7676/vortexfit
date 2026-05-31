@@ -1,0 +1,235 @@
+@model VortexFit.Models.PerfilViewModel
+@{
+    ViewData["Title"] = "Mi perfil — Style Gym";
+    Layout = "_DashboardLayout";
+
+    var (planIcon, planColor) = Model.Plan switch
+    {
+        "Pro"   => ("⚡", "#3DD9D9"),
+        "Elite" => ("👑", "#0BBABA"),
+        _       => ("🔵", "#8A9BB0")
+    };
+}
+
+<!-- ══ HEADER ══ -->
+<div class="dash-header">
+    <div>
+        <p class="dash-saludo">Configuración</p>
+        <h1 class="dash-nombre">Mi perfil</h1>
+    </div>
+    <div class="dash-plan-badge" style="border-color:@planColor; color:@planColor;">
+        @planIcon Plan @Model.Plan
+    </div>
+</div>
+
+<!-- ══ MENSAJE ÉXITO ══ -->
+@if (TempData["SuccessMessage"] != null)
+{
+    <div class="dash-alert dash-alert-success">
+        @TempData["SuccessMessage"]
+    </div>
+}
+
+<form asp-action="Perfil" asp-controller="Dashboard" method="post" novalidate>
+    @Html.AntiForgeryToken()
+
+    <div class="perfil-page-grid">
+
+        <!-- ═══ COLUMNA IZQUIERDA: Avatar + Info de cuenta ═══ -->
+        <div class="perfil-col-left">
+
+            <!-- Tarjeta avatar -->
+            <div class="dash-card perfil-avatar-card">
+                <div class="perfil-avatar-big">
+                    @Model.NombreCompleto[0]
+                </div>
+                <p class="perfil-avatar-nombre">@Model.NombreCompleto</p>
+                <p class="perfil-avatar-email">@Model.Email</p>
+
+                <div class="perfil-badges">
+                    <span class="perfil-badge" style="border-color:@planColor; color:@planColor;">
+                        @planIcon @Model.Plan
+                    </span>
+                    <span class="perfil-badge perfil-badge-estado">
+                        <i class="fa-solid fa-circle-check"></i> @Model.Estado
+                    </span>
+                </div>
+            </div>
+
+            <!-- Info de cuenta (solo lectura) -->
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h2><i class="fa-solid fa-clipboard-list"></i> Info de cuenta</h2>
+                </div>
+                <div class="perfil-info-list">
+                    <div class="perfil-info-row">
+                        <span class="perfil-info-label">Correo</span>
+                        <span class="perfil-info-value">@Model.Email</span>
+                    </div>
+                    <div class="perfil-info-row">
+                        <span class="perfil-info-label">Plan</span>
+                        <span class="perfil-info-value">@Model.Plan</span>
+                    </div>
+                    <div class="perfil-info-row">
+                        <span class="perfil-info-label">Estado</span>
+                        <span class="perfil-info-value" style="color:#22c55e;">@Model.Estado</span>
+                    </div>
+                    <div class="perfil-info-row">
+                        <span class="perfil-info-label">Miembro desde</span>
+                        <span class="perfil-info-value">@Model.FechaRegistro.ToString("dd 'de' MMMM, yyyy")</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+
+        <!-- ═══ COLUMNA DERECHA: Formularios ═══ -->
+        <div class="perfil-col-right">
+
+            <!-- Datos personales -->
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h2><i class="fa-solid fa-pen"></i> Datos personales</h2>
+                </div>
+
+                <!-- Nombre -->
+                <div class="form-group">
+                    <label asp-for="NombreCompleto">Nombre completo</label>
+                    <input asp-for="NombreCompleto" type="text" class="form-input"
+                           placeholder="Tu nombre completo" autocomplete="name" />
+                    <span asp-validation-for="NombreCompleto" class="form-error"></span>
+                </div>
+
+                <!-- Email (solo lectura) -->
+                <div class="form-group">
+                    <label>Correo electrónico</label>
+                    <div class="form-input-readonly">
+                        <span>@Model.Email</span>
+                        <span class="readonly-badge">No editable</span>
+                    </div>
+                </div>
+
+                <!-- Teléfono -->
+                <div class="form-group">
+                    <label asp-for="Telefono">Teléfono</label>
+                    <input asp-for="Telefono" type="tel" class="form-input"
+                           placeholder="Ej. 987654321" autocomplete="tel" />
+                    <span asp-validation-for="Telefono" class="form-error"></span>
+                </div>
+            </div>
+
+            <!-- Cambio de contraseña -->
+            <div class="dash-card">
+                <div class="dash-card-header">
+                    <h2><i class="fa-solid fa-lock"></i> Cambiar contraseña</h2>
+                    <span class="perfil-opcional">Opcional</span>
+                </div>
+                <p class="perfil-cambio-hint">
+                    Deja estos campos vacíos si no deseas cambiar tu contraseña.
+                </p>
+
+                <!-- Contraseña actual -->
+                <div class="form-group">
+                    <label asp-for="PasswordActual">Contraseña actual</label>
+                    <div class="input-password-wrap">
+                        <input asp-for="PasswordActual" type="password" class="form-input"
+                               placeholder="Tu contraseña actual" id="pwActual"
+                               autocomplete="current-password" />
+                        <button type="button" class="toggle-password"
+                                onclick="togglePw('pwActual', this)">👁</button>
+                    </div>
+                    <span asp-validation-for="PasswordActual" class="form-error"></span>
+                </div>
+
+                <!-- Nueva contraseña -->
+                <div class="form-row">
+                    <div class="form-group">
+                        <label asp-for="NuevaPassword">Nueva contraseña</label>
+                        <div class="input-password-wrap">
+                            <input asp-for="NuevaPassword" type="password" class="form-input"
+                                   placeholder="Mínimo 8 caracteres" id="pwNueva"
+                                   autocomplete="new-password" />
+                            <button type="button" class="toggle-password"
+                                    onclick="togglePw('pwNueva', this)">👁</button>
+                        </div>
+                        <span asp-validation-for="NuevaPassword" class="form-error"></span>
+                    </div>
+                    <div class="form-group">
+                        <label asp-for="ConfirmarPassword">Confirmar nueva contraseña</label>
+                        <div class="input-password-wrap">
+                            <input asp-for="ConfirmarPassword" type="password" class="form-input"
+                                   placeholder="Repite la nueva contraseña" id="pwConfirm"
+                                   autocomplete="new-password" />
+                            <button type="button" class="toggle-password"
+                                    onclick="togglePw('pwConfirm', this)">👁</button>
+                        </div>
+                        <span asp-validation-for="ConfirmarPassword" class="form-error"></span>
+                    </div>
+                </div>
+
+                <!-- Indicador de fortaleza -->
+                <div class="password-strength-wrap" id="strengthWrap" style="display:none;">
+                    <div class="password-strength-bar">
+                        <div class="password-strength-fill" id="strengthFill"></div>
+                    </div>
+                    <span class="password-strength-label" id="strengthLabel"></span>
+                </div>
+            </div>
+
+            <!-- Botones de acción -->
+            <div class="perfil-actions">
+                <a asp-controller="Dashboard" asp-action="Index" class="btn-outline">
+                    ← Volver al panel
+                </a>
+                <button type="submit" class="btn-primary">
+                    Guardar cambios
+                </button>
+            </div>
+
+        </div>
+    </div>
+</form>
+
+@section Scripts {
+    <script>
+        // Toggle contraseña
+        function togglePw(id, btn) {
+            const el = document.getElementById(id);
+            el.type = el.type === 'password' ? 'text' : 'password';
+            btn.textContent = el.type === 'password' ? '👁' : '🙈';
+        }
+
+        // Indicador de fortaleza
+        const pwNueva = document.getElementById('pwNueva');
+        const wrap    = document.getElementById('strengthWrap');
+        const fill    = document.getElementById('strengthFill');
+        const label   = document.getElementById('strengthLabel');
+
+        const levels = [
+            { min: 0, label: 'Muy débil',  color: '#ef4444', width: '20%' },
+            { min: 2, label: 'Débil',       color: '#f97316', width: '40%' },
+            { min: 3, label: 'Regular',     color: '#eab308', width: '60%' },
+            { min: 4, label: 'Fuerte',      color: '#22c55e', width: '80%' },
+            { min: 5, label: 'Muy fuerte',  color: '#10b981', width: '100%' },
+        ];
+
+        pwNueva.addEventListener('input', () => {
+            const val = pwNueva.value;
+            if (!val) { wrap.style.display = 'none'; return; }
+            wrap.style.display = 'flex';
+
+            let score = 0;
+            if (val.length >= 8)           score++;
+            if (val.length >= 12)          score++;
+            if (/[A-Z]/.test(val))         score++;
+            if (/[0-9]/.test(val))         score++;
+            if (/[^A-Za-z0-9]/.test(val))  score++;
+
+            const lv = levels.filter(l => score >= l.min).pop();
+            fill.style.width      = lv.width;
+            fill.style.background = lv.color;
+            label.textContent     = lv.label;
+            label.style.color     = lv.color;
+        });
+    </script>
+}

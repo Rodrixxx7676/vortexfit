@@ -1,0 +1,35 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+.vs/
+*.swp
+
+## Publicación
+publish/
+out/
+
+## Secretos y configuración local
+appsettings.*.json
+!appsettings.json
+!appsettings.Development.json
+*.pfx
+*.p12
+
+## Logs
+logs/
+*.log
+
+## OS
+.DS_Store
+Thumbs.db
+desktop.ini
+
+## NuGet
+*.nupkg
+.nuget/
+
+## Rider / VS Code
+.idea/
+.vscode/settings.json

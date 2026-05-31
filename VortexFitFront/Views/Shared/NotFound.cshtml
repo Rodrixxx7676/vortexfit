@@ -1,0 +1,20 @@
+@{
+    ViewData["Title"] = "Página no encontrada — Style Gym";
+    Layout = "_Layout";
+}
+
+<div class="error-page">
+    <div class="error-glow"></div>
+    <div class="error-content">
+        <div class="error-code">404</div>
+        <h1 class="error-title">Página no encontrada</h1>
+        <p class="error-desc">
+            La página que buscas no existe o fue movida.<br>
+            Verifica la URL o regresa al inicio.
+        </p>
+        <div class="error-actions">
+            <a href="/" class="btn-primary">Volver al inicio</a>
+            <a asp-controller="Account" asp-action="Login" class="btn-outline">Iniciar sesión</a>
+        </div>
+    </div>
+</div>

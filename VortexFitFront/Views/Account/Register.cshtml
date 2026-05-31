@@ -1,0 +1,178 @@
+@model VortexFit.Models.RegisterViewModel
+@{
+    ViewData["Title"] = "Crear cuenta — Style Gym";
+    Layout = "_Layout";
+}
+
+<div class="auth-page">
+    <div class="auth-card auth-card-wide">
+
+        <!-- Logo -->
+        <a href="/" class="auth-logo">
+            <img src="/images/stylegym_t.png" alt="Style Gym" style="height:60px; border-radius:10px; display:block; margin:0 auto;">
+        </a>
+        <p class="auth-subtitle">Crea tu cuenta y empieza hoy 💪</p>
+
+        <!-- Errores globales -->
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+        {
+            <div class="auth-alert auth-alert-error">
+                ⚠️ Revisa los campos marcados en rojo antes de continuar.
+            </div>
+        }
+
+        <form asp-action="Register" asp-controller="Account" method="post" novalidate>
+            @Html.AntiForgeryToken()
+
+            <!-- Nombre completo -->
+            <div class="form-group">
+                <label asp-for="FullName">Nombre completo</label>
+                <input asp-for="FullName"
+                       type="text"
+                       class="form-input"
+                       placeholder="Ej. María García Rojas"
+                       autocomplete="name" />
+                <span asp-validation-for="FullName" class="form-error"></span>
+            </div>
+
+            <!-- Fila: Correo + Teléfono -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Email">Correo electrónico</label>
+                    <input asp-for="Email"
+                           type="email"
+                           class="form-input"
+                           placeholder="tucorreo@ejemplo.com"
+                           autocomplete="email" />
+                    <span asp-validation-for="Email" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="Phone">Teléfono</label>
+                    <input asp-for="Phone"
+                           type="tel"
+                           class="form-input"
+                           placeholder="Ej. 987654321"
+                           autocomplete="tel" />
+                    <span asp-validation-for="Phone" class="form-error"></span>
+                </div>
+            </div>
+
+            <!-- Plan de membresía -->
+            <div class="form-group">
+                <label asp-for="Plan">Plan de membresía</label>
+                <select asp-for="Plan" class="form-input form-select">
+                    <option value="">— Selecciona un plan —</option>
+                    <option value="Basico">🔵 Básico — S/ 299/mes</option>
+                    <option value="Pro">⚡ Pro — S/ 499/mes (más popular)</option>
+                    <option value="Elite">👑 Elite — S/ 799/mes</option>
+                </select>
+                <span asp-validation-for="Plan" class="form-error"></span>
+            </div>
+
+            <!-- Fila: Contraseña + Confirmar -->
+            <div class="form-row">
+                <div class="form-group">
+                    <label asp-for="Password">Contraseña</label>
+                    <div class="input-password-wrap">
+                        <input asp-for="Password"
+                               type="password"
+                               class="form-input"
+                               placeholder="Mínimo 8 caracteres"
+                               id="passwordInput"
+                               autocomplete="new-password" />
+                        <button type="button" class="toggle-password" onclick="togglePassword('passwordInput', this)" aria-label="Ver contraseña">👁</button>
+                    </div>
+                    <span asp-validation-for="Password" class="form-error"></span>
+                </div>
+                <div class="form-group">
+                    <label asp-for="ConfirmPassword">Confirmar contraseña</label>
+                    <div class="input-password-wrap">
+                        <input asp-for="ConfirmPassword"
+                               type="password"
+                               class="form-input"
+                               placeholder="Repite tu contraseña"
+                               id="confirmInput"
+                               autocomplete="new-password" />
+                        <button type="button" class="toggle-password" onclick="togglePassword('confirmInput', this)" aria-label="Ver contraseña">👁</button>
+                    </div>
+                    <span asp-validation-for="ConfirmPassword" class="form-error"></span>
+                </div>
+            </div>
+
+            <!-- Indicador de fortaleza de contraseña -->
+            <div class="password-strength-wrap" id="strengthWrap" style="display:none;">
+                <div class="password-strength-bar">
+                    <div class="password-strength-fill" id="strengthFill"></div>
+                </div>
+                <span class="password-strength-label" id="strengthLabel"></span>
+            </div>
+
+            <!-- Términos y condiciones -->
+            <div class="form-check">
+                <input asp-for="AcceptTerms" type="checkbox" id="acceptTerms" />
+                <label for="acceptTerms">
+                    Acepto los
+                    <a href="#" class="form-link">términos y condiciones</a>
+                    y el
+                    <a href="#" class="form-link">aviso de privacidad</a>
+                </label>
+            </div>
+            <span asp-validation-for="AcceptTerms" class="form-error" style="display:block; margin-top:-0.5rem; margin-bottom:1rem;"></span>
+
+            <!-- Botón -->
+            <button type="submit" class="btn-primary btn-full">
+                Crear mi cuenta gratis
+            </button>
+        </form>
+
+        <p class="auth-footer-text">
+            ¿Ya tienes cuenta?
+            <a asp-action="Login" asp-controller="Account" class="form-link">Inicia sesión</a>
+        </p>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        // Toggle visibilidad contraseña
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            input.type = input.type === 'password' ? 'text' : 'password';
+            btn.textContent = input.type === 'password' ? '👁' : '🙈';
+        }
+
+        // Indicador de fortaleza de contraseña
+        const pwInput   = document.getElementById('passwordInput');
+        const wrap      = document.getElementById('strengthWrap');
+        const fill      = document.getElementById('strengthFill');
+        const label     = document.getElementById('strengthLabel');
+
+        const levels = [
+            { min: 0,  label: 'Muy débil',  color: '#ef4444', width: '20%' },
+            { min: 2,  label: 'Débil',       color: '#f97316', width: '40%' },
+            { min: 3,  label: 'Regular',     color: '#eab308', width: '60%' },
+            { min: 4,  label: 'Fuerte',      color: '#22c55e', width: '80%' },
+            { min: 5,  label: 'Muy fuerte',  color: '#10b981', width: '100%' },
+        ];
+
+        pwInput.addEventListener('input', () => {
+            const val = pwInput.value;
+            if (!val) { wrap.style.display = 'none'; return; }
+            wrap.style.display = 'flex';
+
+            let score = 0;
+            if (val.length >= 8)              score++;
+            if (val.length >= 12)             score++;
+            if (/[A-Z]/.test(val))            score++;
+            if (/[0-9]/.test(val))            score++;
+            if (/[^A-Za-z0-9]/.test(val))     score++;
+
+            const lv = levels.filter(l => score >= l.min).pop();
+            fill.style.width      = lv.width;
+            fill.style.background = lv.color;
+            label.textContent     = lv.label;
+            label.style.color     = lv.color;
+        });
+    </script>
+}

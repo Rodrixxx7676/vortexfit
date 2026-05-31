@@ -1,0 +1,198 @@
+@model VortexFit.Models.DashboardViewModel
+@{
+    ViewData["Title"] = "Mi panel — Style Gym";
+    Layout = "_DashboardLayout";
+
+    // Icono y color del plan
+    var (planIcon, planColor) = Model.Socio.Plan switch
+    {
+        "Pro"   => ("⚡", "#3DD9D9"),
+        "Elite" => ("👑", "#0BBABA"),
+        _       => ("🔵", "#8A9BB0")
+    };
+
+    // Saludo por hora
+    var hora    = DateTime.Now.Hour;
+    var saludo  = hora < 12 ? "Buenos días" : hora < 19 ? "Buenas tardes" : "Buenas noches";
+    var nombre  = Model.Socio.NombreCompleto.Split(' ')[0];
+
+    // Color de días restantes
+    var diasColor = Model.DiasRestantes > 10 ? "#22c55e"
+                  : Model.DiasRestantes > 5  ? "#eab308"
+                  : "#ef4444";
+}
+
+<!-- ══════════════════ HEADER ══════════════════ -->
+<div class="dash-header">
+    <div>
+        <p class="dash-saludo">@saludo, 👋</p>
+        <h1 class="dash-nombre">@nombre</h1>
+    </div>
+    <div class="dash-plan-badge" style="border-color: @planColor; color: @planColor;">
+        @planIcon Plan @Model.Socio.Plan
+    </div>
+</div>
+
+<!-- ══════════════════ STAT CARDS ══════════════════ -->
+<div class="dash-stats">
+
+    <!-- Días de membresía -->
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-calendar-days"></i></div>
+        <div class="stat-body">
+            <span class="stat-value" style="color: @diasColor">@Model.DiasRestantes</span>
+            <span class="stat-label">Días restantes</span>
+        </div>
+        <div class="stat-progress-wrap">
+            <div class="stat-progress-bar">
+                <div class="stat-progress-fill" style="width: @Model.PorcentajePlan%; background: @diasColor;"></div>
+            </div>
+            <span class="stat-progress-text">
+                Vence: @(Model.Socio.FechaVencimiento.HasValue
+                    ? Model.Socio.FechaVencimiento.Value.ToString("dd MMM yyyy")
+                    : "—")
+            </span>
+        </div>
+    </div>
+
+    <!-- Clases totales -->
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-dumbbell"></i></div>
+        <div class="stat-body">
+            <span class="stat-value">@Model.ClasesAsistidas</span>
+            <span class="stat-label">Clases asistidas</span>
+        </div>
+        <p class="stat-sub">@Model.ClasesEsteMes este mes</p>
+    </div>
+
+    <!-- Racha -->
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-fire" style="color:#f97316;"></i></div>
+        <div class="stat-body">
+            <span class="stat-value" style="color: #f97316;">@Model.RachaActual</span>
+            <span class="stat-label">Días de racha</span>
+        </div>
+        <p class="stat-sub">¡Sigue así!</p>
+    </div>
+
+    <!-- Estado membresía -->
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-circle-check" style="color:#22c55e;"></i></div>
+        <div class="stat-body">
+            <span class="stat-value" style="color: #22c55e; font-size: 1.3rem;">@Model.Socio.Estado</span>
+            <span class="stat-label">Estado de cuenta</span>
+        </div>
+        <p class="stat-sub">Desde @Model.Socio.FechaRegistro.ToString("MMM yyyy")</p>
+    </div>
+
+</div>
+
+<!-- ══════════════════ CONTENIDO PRINCIPAL ══════════════════ -->
+<div class="dash-grid">
+
+    <!-- Columna izquierda: Próximas clases -->
+    <div class="dash-col">
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h2><i class="fa-solid fa-calendar-days"></i> Próximas clases</h2>
+                <a href="/" class="form-link">Ver horario completo</a>
+            </div>
+
+            <div class="clases-list">
+                @foreach (var clase in Model.ProximasClases)
+                {
+                    var badgeClass = clase.Nombre.ToLower() switch
+                    {
+                        "spinning" => "badge-spinning",
+                        "yoga"     => "badge-yoga",
+                        "crossfit" => "badge-crossfit",
+                        "zumba"    => "badge-zumba",
+                        "box"      => "badge-box",
+                        _          => "badge-spinning"
+                    };
+                    <div class="clase-item">
+                        <div class="clase-info">
+                            <span class="badge-class @badgeClass">@clase.Nombre</span>
+                            <div class="clase-detalle">
+                                <span>@clase.Dia · @clase.Hora</span>
+                                <span class="clase-instructor">@clase.Instructor</span>
+                            </div>
+                        </div>
+                        <div class="clase-cupo">
+                            <span class="cupo-num">@clase.Cupo</span>
+                            <span class="cupo-label">lugares</span>
+                            <button class="btn-reservar">Reservar</button>
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Columna derecha: Perfil + Acciones rápidas -->
+    <div class="dash-col">
+
+        <!-- Mi perfil -->
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h2><i class="fa-solid fa-user"></i> Mi perfil</h2>
+                <a asp-controller="Dashboard" asp-action="Perfil" class="form-link">Editar</a>
+            </div>
+            <div class="perfil-info">
+                <div class="perfil-avatar">
+                    @Model.Socio.NombreCompleto[0]
+                </div>
+                <div class="perfil-datos">
+                    <p class="perfil-nombre">@Model.Socio.NombreCompleto</p>
+                    <p class="perfil-email">@Model.Socio.Email</p>
+                    @if (!string.IsNullOrEmpty(Model.Socio.Telefono))
+                    {
+                        <p class="perfil-tel"><i class="fa-solid fa-phone"></i> @Model.Socio.Telefono</p>
+                    }
+                </div>
+            </div>
+        </div>
+
+        <!-- Acciones rápidas -->
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h2><i class="fa-solid fa-bolt"></i> Acciones rápidas</h2>
+            </div>
+            <div class="acciones-grid">
+                <a href="#" class="accion-btn">
+                    <i class="fa-solid fa-calendar-plus"></i>
+                    <span>Reservar clase</span>
+                </a>
+                <a asp-controller="Dashboard" asp-action="Perfil" class="accion-btn">
+                    <i class="fa-solid fa-pen"></i>
+                    <span>Editar perfil</span>
+                </a>
+                <a href="#" class="accion-btn">
+                    <i class="fa-solid fa-credit-card"></i>
+                    <span>Renovar plan</span>
+                </a>
+                <a href="#" class="accion-btn">
+                    <i class="fa-solid fa-chart-line"></i>
+                    <span>Mi progreso</span>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<!-- Alerta de vencimiento próximo -->
+@if (Model.DiasRestantes <= 5 && Model.DiasRestantes > 0)
+{
+    <div class="dash-alert dash-alert-warn">
+        <i class="fa-solid fa-triangle-exclamation"></i> Tu membresía vence en <strong>@Model.DiasRestantes día(s)</strong>.
+        <a href="#" class="form-link" style="margin-left:0.5rem;">Renovar ahora</a>
+    </div>
+}
+@if (Model.DiasRestantes == 0)
+{
+    <div class="dash-alert dash-alert-error">
+        <i class="fa-solid fa-ban"></i> Tu membresía ha vencido. Renueva para seguir disfrutando de Style Gym.
+        <a href="#" class="form-link" style="margin-left:0.5rem;">Renovar ahora</a>
+    </div>
+}

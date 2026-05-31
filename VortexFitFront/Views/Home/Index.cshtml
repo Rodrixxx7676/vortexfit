@@ -1,0 +1,297 @@
+@{
+    ViewData["Title"] = "Style Gym — Muévete sin límites";
+    Layout = "_Layout";
+}
+
+<!-- ══════════════════════════════════════════
+     HERO
+══════════════════════════════════════════ -->
+<section class="hero">
+    <div class="hero-glow"></div>
+    <div style="position:relative; z-index:1;">
+        <div class="hero-badge">💪 Únete a la revolución fitness</div>
+        <h1>
+            Tu mejor versión<br>
+            empieza en <span class="highlight">Style Gym</span>
+        </h1>
+        <p>
+            Entrena con los mejores instructores, accede a clases ilimitadas
+            y lleva un control total de tu progreso físico.
+        </p>
+        <div class="hero-actions">
+            <a href="#planes" class="btn-primary">Comenzar ahora</a>
+            <a href="#clases"  class="btn-outline">Ver horarios</a>
+        </div>
+
+        <div class="hero-stats">
+            <div class="hero-stat">
+                <h3>+1,200</h3>
+                <p>Miembros activos</p>
+            </div>
+            <div class="hero-stat">
+                <h3>18</h3>
+                <p>Instructores certificados</p>
+            </div>
+            <div class="hero-stat">
+                <h3>35+</h3>
+                <p>Clases semanales</p>
+            </div>
+            <div class="hero-stat">
+                <h3>4.9 ★</h3>
+                <p>Calificación promedio</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     SERVICIOS
+══════════════════════════════════════════ -->
+<section class="services" id="servicios">
+    <div class="container" style="text-align:center;">
+        <span class="section-label">Lo que ofrecemos</span>
+        <h2 class="section-title">Todo lo que necesitas para entrenar</h2>
+        <p class="section-sub" style="margin: 0 auto;">
+            Equipamiento de última generación, clases variadas y un equipo
+            que te apoya en cada paso.
+        </p>
+
+        <div class="services-grid">
+            <div class="service-card">
+                <div class="service-icon">🏋️</div>
+                <h3>Área de pesas</h3>
+                <p>Zona equipada con máquinas de última generación para entrenamiento de fuerza y musculación.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">🚴</div>
+                <h3>Clases grupales</h3>
+                <p>Spinning, Zumba, Yoga, CrossFit y más. Más de 35 clases a la semana con instructores certificados.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">🧘</div>
+                <h3>Zona de bienestar</h3>
+                <p>Área de meditación, yoga y stretching para complementar tu entrenamiento y recuperación.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">📊</div>
+                <h3>Seguimiento fitness</h3>
+                <p>Registra tus medidas, progreso y rutinas desde tu perfil personal en nuestra plataforma.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">🥤</div>
+                <h3>Área de nutrición</h3>
+                <p>Asesoría nutricional y barra de batidos proteicos para apoyar tus metas.</p>
+            </div>
+            <div class="service-card">
+                <div class="service-icon">🅿️</div>
+                <h3>Estacionamiento</h3>
+                <p>Amplio estacionamiento gratuito para todos nuestros socios. Abierto los 365 días del año.</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     HORARIO DE CLASES
+══════════════════════════════════════════ -->
+<section id="clases">
+    <div class="container" style="text-align:center;">
+        <span class="section-label">Horarios</span>
+        <h2 class="section-title">Clases de esta semana</h2>
+        <p class="section-sub" style="margin: 0 auto;">
+            Reserva tu lugar con anticipación. Las clases tienen cupo limitado.
+        </p>
+
+        <p class="schedule-scroll-hint">← Desliza para ver más →</p>
+        <div class="schedule-table-wrap">
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th>Hora</th>
+                        <th>Lunes</th>
+                        <th>Miércoles</th>
+                        <th>Viernes</th>
+                        <th>Sábado</th>
+                        <th>Instructor</th>
+                        <th>Cupo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr>
+                        <td>06:00 am</td>
+                        <td><span class="badge-class badge-spinning">Spinning</span></td>
+                        <td><span class="badge-class badge-spinning">Spinning</span></td>
+                        <td><span class="badge-class badge-spinning">Spinning</span></td>
+                        <td>—</td>
+                        <td>Carlos Herrera</td>
+                        <td>20 lugares</td>
+                    </tr>
+                    <tr>
+                        <td>08:00 am</td>
+                        <td><span class="badge-class badge-yoga">Yoga</span></td>
+                        <td>—</td>
+                        <td><span class="badge-class badge-yoga">Yoga</span></td>
+                        <td><span class="badge-class badge-yoga">Yoga</span></td>
+                        <td>Sofía Ramírez</td>
+                        <td>15 lugares</td>
+                    </tr>
+                    <tr>
+                        <td>10:00 am</td>
+                        <td>—</td>
+                        <td><span class="badge-class badge-crossfit">CrossFit</span></td>
+                        <td>—</td>
+                        <td><span class="badge-class badge-crossfit">CrossFit</span></td>
+                        <td>Marco Torres</td>
+                        <td>18 lugares</td>
+                    </tr>
+                    <tr>
+                        <td>06:00 pm</td>
+                        <td><span class="badge-class badge-zumba">Zumba</span></td>
+                        <td><span class="badge-class badge-zumba">Zumba</span></td>
+                        <td><span class="badge-class badge-zumba">Zumba</span></td>
+                        <td>—</td>
+                        <td>Valentina Cruz</td>
+                        <td>25 lugares</td>
+                    </tr>
+                    <tr>
+                        <td>08:00 pm</td>
+                        <td><span class="badge-class badge-box">Box</span></td>
+                        <td>—</td>
+                        <td><span class="badge-class badge-box">Box</span></td>
+                        <td>—</td>
+                        <td>Diego Morales</td>
+                        <td>12 lugares</td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     PLANES
+══════════════════════════════════════════ -->
+<section id="planes" style="background: rgba(20,20,20,0.4);">
+    <div class="container" style="text-align:center;">
+        <span class="section-label">Membresías</span>
+        <h2 class="section-title">Elige tu plan</h2>
+        <p class="section-sub" style="margin: 0 auto;">
+            Sin contratos forzosos. Cancela cuando quieras.
+        </p>
+
+        <div class="plans-grid">
+            <!-- Plan Básico -->
+            <div class="plan-card">
+                <p class="plan-name">Básico</p>
+                <div class="plan-price">
+                    <sup>S/</sup>299<span>/mes</span>
+                </div>
+                <ul class="plan-features">
+                    <li>Acceso al área de pesas</li>
+                    <li>Zona cardiovascular</li>
+                    <li>2 clases grupales/semana</li>
+                    <li>Vestidores y regaderas</li>
+                    <li>App de seguimiento</li>
+                </ul>
+                <a asp-controller="Account" asp-action="Register" asp-route-plan="Basico"
+                   class="btn-outline" style="width:100%; text-align:center;">Elegir plan</a>
+            </div>
+
+            <!-- Plan Pro (destacado) -->
+            <div class="plan-card featured">
+                <div class="plan-popular-badge">Más popular</div>
+                <p class="plan-name">Pro</p>
+                <div class="plan-price">
+                    <sup>S/</sup>499<span>/mes</span>
+                </div>
+                <ul class="plan-features">
+                    <li>Todo lo del plan Básico</li>
+                    <li>Clases grupales ilimitadas</li>
+                    <li>1 sesión con nutriólogo/mes</li>
+                    <li>Seguimiento personalizado</li>
+                    <li>Acceso a zona wellness</li>
+                    <li>Estacionamiento incluido</li>
+                </ul>
+                <a asp-controller="Account" asp-action="Register" asp-route-plan="Pro"
+                   class="btn-primary" style="width:100%; text-align:center;">Elegir plan</a>
+            </div>
+
+            <!-- Plan Elite -->
+            <div class="plan-card">
+                <p class="plan-name">Elite</p>
+                <div class="plan-price">
+                    <sup>S/</sup>799<span>/mes</span>
+                </div>
+                <ul class="plan-features">
+                    <li>Todo lo del plan Pro</li>
+                    <li>Entrenador personal 3x/semana</li>
+                    <li>Rutina 100% personalizada</li>
+                    <li>Plan nutricional completo</li>
+                    <li>Acceso 24/7</li>
+                    <li>Taquilla asignada</li>
+                </ul>
+                <a asp-controller="Account" asp-action="Register" asp-route-plan="Elite"
+                   class="btn-outline" style="width:100%; text-align:center;">Elegir plan</a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     TESTIMONIOS
+══════════════════════════════════════════ -->
+<section class="testimonials" id="testimonios">
+    <div class="container" style="text-align:center;">
+        <span class="section-label">Testimonios</span>
+        <h2 class="section-title">Lo que dicen nuestros socios</h2>
+
+        <div class="testimonials-grid">
+            <div class="testimonial-card">
+                <div class="testimonial-stars">★★★★★</div>
+                <p>"Llevo 6 meses en Style Gym y los resultados son increíbles. Los instructores son muy profesionales y el ambiente te motiva a no faltar."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">A</div>
+                    <div>
+                        <h4>Andrea López</h4>
+                        <span>Plan Pro · 6 meses</span>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-stars">★★★★★</div>
+                <p>"Las clases de CrossFit son brutales en el buen sentido. Nunca había visto tanto progreso en tan poco tiempo. Totalmente recomendado."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">R</div>
+                    <div>
+                        <h4>Roberto Vega</h4>
+                        <span>Plan Elite · 1 año</span>
+                    </div>
+                </div>
+            </div>
+            <div class="testimonial-card">
+                <div class="testimonial-stars">★★★★★</div>
+                <p>"El seguimiento de progreso desde la app es genial. Puedo ver mis métricas, reservar clases y contactar a mi entrenador todo desde un mismo lugar."</p>
+                <div class="testimonial-author">
+                    <div class="testimonial-avatar">M</div>
+                    <div>
+                        <h4>Mariana Ríos</h4>
+                        <span>Plan Básico · 3 meses</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════════
+     CTA FINAL
+══════════════════════════════════════════ -->
+<section class="cta-section">
+    <div class="container">
+        <h2>¿Listo para empezar?</h2>
+        <p>Únete hoy y obtén tu primer mes con 20% de descuento. Sin compromisos.</p>
+        <a href="#planes" class="btn-primary" style="font-size:1.05rem; padding:0.85rem 2.5rem;">
+            Registrarme ahora
+        </a>
+    </div>
+</section>

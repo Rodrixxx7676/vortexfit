@@ -1,0 +1,100 @@
+@model VortexFit.Models.LoginViewModel
+@{
+    ViewData["Title"] = "Iniciar sesión — Style Gym";
+    Layout = "_Layout";
+}
+
+<div class="auth-page">
+    <div class="auth-card">
+
+        <!-- Logo -->
+        <a href="/" class="auth-logo">
+            <img src="/images/stylegym_t.png" alt="Style Gym" style="height:60px; border-radius:10px; display:block; margin:0 auto;">
+        </a>
+        <p class="auth-subtitle">Bienvenido de vuelta 👋</p>
+
+        <!-- Mensaje de éxito (ej: después de registrarse) -->
+        @if (TempData["SuccessMessage"] != null)
+        {
+            <div class="auth-alert auth-alert-success">
+                ✅ @TempData["SuccessMessage"]
+            </div>
+        }
+
+        <!-- Errores globales -->
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+        {
+            <div class="auth-alert auth-alert-error">
+                ⚠️ Revisa los campos marcados en rojo.
+            </div>
+        }
+
+        <form asp-action="Login" asp-controller="Account" method="post" novalidate>
+            <input type="hidden" asp-for="@ViewData["ReturnUrl"]" name="returnUrl" />
+            @Html.AntiForgeryToken()
+
+            <!-- Correo -->
+            <div class="form-group">
+                <label asp-for="Email">Correo electrónico</label>
+                <input asp-for="Email"
+                       type="email"
+                       class="form-input"
+                       placeholder="tucorreo@ejemplo.com"
+                       autocomplete="email" />
+                <span asp-validation-for="Email" class="form-error"></span>
+            </div>
+
+            <!-- Contraseña -->
+            <div class="form-group">
+                <div class="form-label-row">
+                    <label asp-for="Password">Contraseña</label>
+                    <a href="#" class="form-link">¿Olvidaste tu contraseña?</a>
+                </div>
+                <div class="input-password-wrap">
+                    <input asp-for="Password"
+                           type="password"
+                           class="form-input"
+                           placeholder="••••••••"
+                           id="passwordInput"
+                           autocomplete="current-password" />
+                    <button type="button" class="toggle-password" onclick="togglePassword('passwordInput', this)" aria-label="Ver contraseña">
+                        👁
+                    </button>
+                </div>
+                <span asp-validation-for="Password" class="form-error"></span>
+            </div>
+
+            <!-- Recordarme -->
+            <div class="form-check">
+                <input asp-for="RememberMe" type="checkbox" id="rememberMe" />
+                <label for="rememberMe">Recordarme en este dispositivo</label>
+            </div>
+
+            <!-- Botón -->
+            <button type="submit" class="btn-primary btn-full">
+                Iniciar sesión
+            </button>
+        </form>
+
+        <p class="auth-footer-text">
+            ¿No tienes cuenta?
+            <a asp-action="Register" asp-controller="Account" class="form-link">Regístrate gratis</a>
+        </p>
+
+    </div>
+</div>
+
+@section Scripts {
+    <script>
+        function togglePassword(inputId, btn) {
+            const input = document.getElementById(inputId);
+            if (input.type === 'password') {
+                input.type = 'text';
+                btn.textContent = '🙈';
+            } else {
+                input.type = 'password';
+                btn.textContent = '👁';
+            }
+        }
+    </script>
+}
