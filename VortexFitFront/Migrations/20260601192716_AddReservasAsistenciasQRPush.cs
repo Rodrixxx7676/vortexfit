@@ -11,13 +11,22 @@ namespace VortexFit.Migrations
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            // Oracle: empty string == NULL, so add nullable first, fill rows, then set NOT NULL
             migrationBuilder.AddColumn<string>(
                 name: "CODIGO_ACCESO",
                 table: "SOCIOS",
                 type: "NVARCHAR2(20)",
                 maxLength: 20,
-                nullable: false,
-                defaultValue: "");
+                nullable: true,
+                defaultValue: null);
+
+            migrationBuilder.Sql(
+                @"UPDATE ""SOCIOS"" SET ""CODIGO_ACCESO"" = " +
+                @"UPPER(SUBSTR(RAWTOHEX(SYS_GUID()), 1, 12)) " +
+                @"WHERE ""CODIGO_ACCESO"" IS NULL");
+
+            migrationBuilder.Sql(
+                @"ALTER TABLE ""SOCIOS"" MODIFY ""CODIGO_ACCESO"" NVARCHAR2(20) NOT NULL");
 
             migrationBuilder.CreateTable(
                 name: "ASISTENCIAS",
