@@ -6,9 +6,9 @@
     // Icono y color del plan
     var (planIcon, planColor) = Model.Socio.Plan switch
     {
-        "Pro"   => ("⚡", "#3DD9D9"),
-        "Elite" => ("👑", "#0BBABA"),
-        _       => ("🔵", "#8A9BB0")
+        "Pro"   => ("<i class=\"fa-solid fa-bolt\"></i>",   "#3DD9D9"),
+        "Elite" => ("<i class=\"fa-solid fa-crown\"></i>",  "#0BBABA"),
+        _       => ("<i class=\"fa-regular fa-circle\"></i>","#8A9BB0")
     };
 
     // Saludo por hora
@@ -25,11 +25,11 @@
 <!-- ══════════════════ HEADER ══════════════════ -->
 <div class="dash-header">
     <div>
-        <p class="dash-saludo">@saludo, 👋</p>
+        <p class="dash-saludo">@saludo <i class="fa-solid fa-hand-wave" style="font-size:0.95em;"></i></p>
         <h1 class="dash-nombre">@nombre</h1>
     </div>
     <div class="dash-plan-badge" style="border-color: @planColor; color: @planColor;">
-        @planIcon Plan @Model.Socio.Plan
+        @Html.Raw(planIcon) Plan @Model.Socio.Plan
     </div>
 </div>
 

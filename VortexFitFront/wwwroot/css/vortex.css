@@ -104,11 +104,16 @@ body {
 .navbar-hamburger {
   display: none;
   flex-direction: column;
+  align-items: center;
+  justify-content: center;
   gap: 5px;
   cursor: pointer;
-  padding: 4px;
+  padding: 8px;
   background: none;
   border: none;
+  align-self: center;
+  height: 40px;
+  width: 40px;
 }
 .navbar-hamburger span {
   display: block;
@@ -389,7 +394,8 @@ section { padding: 4.5rem 1.5rem; }
 }
 
 .service-icon {
-  font-size: 1.8rem;
+  font-size: 1.6rem;
+  color: var(--primary);
   margin-bottom: 1.1rem;
   width: 56px;
   height: 56px;

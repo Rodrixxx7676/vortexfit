@@ -5,9 +5,9 @@
 
     var (planIcon, planColor) = Model.Plan switch
     {
-        "Pro"   => ("⚡", "#3DD9D9"),
-        "Elite" => ("👑", "#0BBABA"),
-        _       => ("🔵", "#8A9BB0")
+        "Pro"   => ("<i class=\"fa-solid fa-bolt\"></i>",   "#3DD9D9"),
+        "Elite" => ("<i class=\"fa-solid fa-crown\"></i>",  "#0BBABA"),
+        _       => ("<i class=\"fa-regular fa-circle\"></i>","#8A9BB0")
     };
 }
 
@@ -18,7 +18,7 @@
         <h1 class="dash-nombre">Mi perfil</h1>
     </div>
     <div class="dash-plan-badge" style="border-color:@planColor; color:@planColor;">
-        @planIcon Plan @Model.Plan
+        @Html.Raw(planIcon) Plan @Model.Plan
     </div>
 </div>
 
@@ -48,7 +48,7 @@
 
                 <div class="perfil-badges">
                     <span class="perfil-badge" style="border-color:@planColor; color:@planColor;">
-                        @planIcon @Model.Plan
+                        @Html.Raw(planIcon) @Model.Plan
                     </span>
                     <span class="perfil-badge perfil-badge-estado">
                         <i class="fa-solid fa-circle-check"></i> @Model.Estado
@@ -136,7 +136,7 @@
                                placeholder="Tu contraseña actual" id="pwActual"
                                autocomplete="current-password" />
                         <button type="button" class="toggle-password"
-                                onclick="togglePw('pwActual', this)">👁</button>
+                                onclick="togglePw('pwActual', this)"><i class="fa-regular fa-eye"></i></button>
                     </div>
                     <span asp-validation-for="PasswordActual" class="form-error"></span>
                 </div>
@@ -150,7 +150,7 @@
                                    placeholder="Mínimo 8 caracteres" id="pwNueva"
                                    autocomplete="new-password" />
                             <button type="button" class="toggle-password"
-                                    onclick="togglePw('pwNueva', this)">👁</button>
+                                    onclick="togglePw('pwNueva', this)"><i class="fa-regular fa-eye"></i></button>
                         </div>
                         <span asp-validation-for="NuevaPassword" class="form-error"></span>
                     </div>
@@ -161,7 +161,7 @@
                                    placeholder="Repite la nueva contraseña" id="pwConfirm"
                                    autocomplete="new-password" />
                             <button type="button" class="toggle-password"
-                                    onclick="togglePw('pwConfirm', this)">👁</button>
+                                    onclick="togglePw('pwConfirm', this)"><i class="fa-regular fa-eye"></i></button>
                         </div>
                         <span asp-validation-for="ConfirmarPassword" class="form-error"></span>
                     </div>
@@ -196,7 +196,7 @@
         function togglePw(id, btn) {
             const el = document.getElementById(id);
             el.type = el.type === 'password' ? 'text' : 'password';
-            btn.textContent = el.type === 'password' ? '👁' : '🙈';
+            btn.innerHTML = el.type === 'password' ? '<i class="fa-regular fa-eye"></i>' : '<i class="fa-regular fa-eye-slash"></i>';
         }
 
         // Indicador de fortaleza

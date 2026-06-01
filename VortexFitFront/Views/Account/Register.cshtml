@@ -9,15 +9,15 @@
 
         <!-- Logo -->
         <a href="/" class="auth-logo">
-            <img src="/images/stylegym_t.png" alt="Style Gym" style="height:60px; border-radius:10px; display:block; margin:0 auto;">
+            <img src="/images/stylegym_t.png?v=4" alt="Style Gym" style="height:60px; display:block; margin:0 auto;">
         </a>
-        <p class="auth-subtitle">Crea tu cuenta y empieza hoy 💪</p>
+        <p class="auth-subtitle">Crea tu cuenta y empieza hoy <i class="fa-solid fa-dumbbell"></i></p>
 
         <!-- Errores globales -->
         @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
         {
             <div class="auth-alert auth-alert-error">
-                ⚠️ Revisa los campos marcados en rojo antes de continuar.
+                <i class="fa-solid fa-triangle-exclamation"></i> Revisa los campos marcados en rojo antes de continuar.
             </div>
         }
 
@@ -62,9 +62,9 @@
                 <label asp-for="Plan">Plan de membresía</label>
                 <select asp-for="Plan" class="form-input form-select">
                     <option value="">— Selecciona un plan —</option>
-                    <option value="Basico">🔵 Básico — S/ 299/mes</option>
-                    <option value="Pro">⚡ Pro — S/ 499/mes (más popular)</option>
-                    <option value="Elite">👑 Elite — S/ 799/mes</option>
+                    <option value="Basico">Básico — S/ 299/mes</option>
+                    <option value="Pro">Pro — S/ 499/mes (más popular)</option>
+                    <option value="Elite">Elite — S/ 799/mes</option>
                 </select>
                 <span asp-validation-for="Plan" class="form-error"></span>
             </div>
@@ -80,7 +80,7 @@
                                placeholder="Mínimo 8 caracteres"
                                id="passwordInput"
                                autocomplete="new-password" />
-                        <button type="button" class="toggle-password" onclick="togglePassword('passwordInput', this)" aria-label="Ver contraseña">👁</button>
+                        <button type="button" class="toggle-password" onclick="togglePassword('passwordInput', this)" aria-label="Ver contraseña"><i class="fa-regular fa-eye"></i></button>
                     </div>
                     <span asp-validation-for="Password" class="form-error"></span>
                 </div>
@@ -93,7 +93,7 @@
                                placeholder="Repite tu contraseña"
                                id="confirmInput"
                                autocomplete="new-password" />
-                        <button type="button" class="toggle-password" onclick="togglePassword('confirmInput', this)" aria-label="Ver contraseña">👁</button>
+                        <button type="button" class="toggle-password" onclick="togglePassword('confirmInput', this)" aria-label="Ver contraseña"><i class="fa-regular fa-eye"></i></button>
                     </div>
                     <span asp-validation-for="ConfirmPassword" class="form-error"></span>
                 </div>
@@ -139,7 +139,7 @@
         function togglePassword(inputId, btn) {
             const input = document.getElementById(inputId);
             input.type = input.type === 'password' ? 'text' : 'password';
-            btn.textContent = input.type === 'password' ? '👁' : '🙈';
+            btn.innerHTML = input.type === 'password' ? '<i class="fa-regular fa-eye"></i>' : '<i class="fa-regular fa-eye-slash"></i>';
         }
 
         // Indicador de fortaleza de contraseña
