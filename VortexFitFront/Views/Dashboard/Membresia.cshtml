@@ -1,0 +1,159 @@
+@model VortexFit.Models.MembresiaViewModel
+@{
+    ViewData["Title"] = "Mi membresía — Style Gym";
+    Layout = "_DashboardLayout";
+
+    var diasColor = Model.DiasRestantes > 10 ? "#22c55e"
+                  : Model.DiasRestantes > 5  ? "#eab308"
+                  : "#ef4444";
+
+    var planActual = Model.Planes.First(p => p.EsActual);
+}
+
+<!-- HEADER -->
+<div class="dash-header">
+    <div>
+        <p class="dash-saludo">Mi panel</p>
+        <h1 class="dash-nombre">Mi membresía</h1>
+    </div>
+    <div class="dash-plan-badge" style="border-color:@planActual.Color; color:@planActual.Color;">
+        <i class="fa-solid @planActual.Icono"></i> Plan @planActual.Nombre
+    </div>
+</div>
+
+<!-- ESTADO ACTUAL -->
+<div class="membresia-estado-card">
+    <div class="membresia-estado-left">
+        <div class="membresia-estado-icon" style="color:@planActual.Color;">
+            <i class="fa-solid @planActual.Icono"></i>
+        </div>
+        <div>
+            <p class="membresia-estado-titulo">Plan @planActual.Nombre</p>
+            <p class="membresia-estado-precio">@planActual.Precio / mes</p>
+        </div>
+    </div>
+    <div class="membresia-estado-right">
+        @if (Model.Socio.FechaVencimiento.HasValue)
+        {
+            <div class="membresia-dias-wrap">
+                <span class="membresia-dias-num" style="color:@diasColor;">@Model.DiasRestantes</span>
+                <span class="membresia-dias-label">días restantes</span>
+            </div>
+            <div class="stat-progress-bar" style="width:100%; margin-top:0.5rem;">
+                <div class="stat-progress-fill"
+                     style="width:@Model.PorcentajePlan%; background:@diasColor;"></div>
+            </div>
+            <p style="font-size:0.78rem; color:var(--gray); margin-top:0.4rem; text-align:right;">
+                Vence: @Model.Socio.FechaVencimiento.Value.ToString("dd 'de' MMMM 'de' yyyy")
+            </p>
+        }
+        else
+        {
+            <span class="admin-estado-badge activo"><i class="fa-solid fa-circle" style="font-size:0.5rem;"></i> Sin vencimiento</span>
+        }
+    </div>
+</div>
+
+@if (Model.DiasRestantes <= 5 && Model.DiasRestantes > 0)
+{
+    <div class="dash-alert dash-alert-warn">
+        <i class="fa-solid fa-triangle-exclamation"></i> Tu membresía vence en <strong>@Model.DiasRestantes día(s)</strong>. Renueva para no perder acceso.
+    </div>
+}
+@if (Model.DiasRestantes == 0 && Model.Socio.FechaVencimiento.HasValue)
+{
+    <div class="dash-alert dash-alert-error">
+        <i class="fa-solid fa-ban"></i> Tu membresía ha vencido. Contáctanos para renovar.
+    </div>
+}
+
+<!-- BENEFICIOS DEL PLAN ACTUAL -->
+<div class="dash-card" style="margin-bottom:1.5rem;">
+    <div class="dash-card-header">
+        <h2><i class="fa-solid fa-list-check"></i> Beneficios de tu plan</h2>
+    </div>
+    <ul class="membresia-beneficios-list">
+        @foreach (var b in planActual.Beneficios)
+        {
+            <li><i class="fa-solid fa-circle-check" style="color:@planActual.Color;"></i> @b</li>
+        }
+    </ul>
+</div>
+
+<!-- COMPARATIVA DE PLANES -->
+<div class="dash-card-header" style="margin-bottom:1rem;">
+    <h2 style="font-size:1.1rem; font-weight:700;">
+        <i class="fa-solid fa-arrow-up-right-dots" style="color:var(--primary);"></i>
+        Comparativa de planes
+    </h2>
+</div>
+
+<div class="planes-comparativa">
+    @foreach (var plan in Model.Planes)
+    {
+        <div class="plan-card @(plan.EsActual ? "plan-card-actual" : "")"
+             style="@(plan.EsActual ? $"border-color:{plan.Color};" : "")">
+
+            @if (plan.EsActual)
+            {
+                <div class="plan-current-badge" style="background:@plan.Color; color:#0A0A0A;">
+                    Tu plan actual
+                </div>
+            }
+
+            <div class="plan-icon" style="color:@plan.Color;">
+                <i class="fa-solid @plan.Icono"></i>
+            </div>
+            <h3 class="plan-nombre" style="color:@plan.Color;">@plan.Nombre</h3>
+            <p class="plan-precio">@plan.Precio<span>/mes</span></p>
+
+            <ul class="plan-beneficios">
+                @foreach (var b in plan.Beneficios)
+                {
+                    <li><i class="fa-solid fa-check" style="color:@plan.Color;"></i> @b</li>
+                }
+            </ul>
+
+            @if (!plan.EsActual)
+            {
+                <button class="plan-upgrade-btn" style="border-color:@plan.Color; color:@plan.Color;"
+                        onclick="mostrarToast('Contacta a recepción para cambiar al plan @plan.Nombre', 'success')">
+                    <i class="fa-solid fa-arrow-up"></i> Mejorar a @plan.Nombre
+                </button>
+            }
+            else
+            {
+                <div class="plan-actual-tag" style="border-color:@plan.Color; color:@plan.Color;">
+                    <i class="fa-solid fa-circle-check"></i> Plan activo
+                </div>
+            }
+        </div>
+    }
+</div>
+
+<!-- INFO EXTRA -->
+<div class="dash-card" style="margin-top:1.5rem; display:flex; gap:1.5rem; flex-wrap:wrap;">
+    <div style="flex:1; min-width:200px;">
+        <p class="stat-label" style="margin-bottom:0.5rem;">
+            <i class="fa-solid fa-calendar-plus" style="color:var(--primary);margin-right:0.35rem;"></i>
+            Miembro desde
+        </p>
+        <p style="font-weight:700;">@Model.Socio.FechaRegistro.ToString("dd 'de' MMMM 'de' yyyy")</p>
+    </div>
+    <div style="flex:1; min-width:200px;">
+        <p class="stat-label" style="margin-bottom:0.5rem;">
+            <i class="fa-solid fa-envelope" style="color:var(--primary);margin-right:0.35rem;"></i>
+            Email de cuenta
+        </p>
+        <p style="font-weight:700;">@Model.Socio.Email</p>
+    </div>
+    <div style="flex:1; min-width:200px;">
+        <p class="stat-label" style="margin-bottom:0.5rem;">
+            <i class="fa-solid fa-circle-check" style="color:#22c55e;margin-right:0.35rem;"></i>
+            Estado
+        </p>
+        <span class="admin-estado-badge activo">
+            <i class="fa-solid fa-circle" style="font-size:0.5rem;"></i> @Model.Socio.Estado
+        </span>
+    </div>
+</div>

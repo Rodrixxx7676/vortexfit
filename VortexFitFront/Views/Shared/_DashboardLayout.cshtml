@@ -36,10 +36,12 @@
                class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
                 <i class="fa-solid fa-house"></i> Mi panel
             </a>
-            <a href="#" class="sidebar-link">
+            <a asp-controller="Dashboard" asp-action="Clases"
+               class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Clases" ? "active" : "")">
                 <i class="fa-solid fa-calendar-days"></i> Mis clases
             </a>
-            <a href="#" class="sidebar-link">
+            <a asp-controller="Dashboard" asp-action="Progreso"
+               class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Progreso" ? "active" : "")">
                 <i class="fa-solid fa-chart-line"></i> Mi progreso
             </a>
 
@@ -48,13 +50,13 @@
                class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Perfil" ? "active" : "")">
                 <i class="fa-solid fa-user"></i> Mi perfil
             </a>
-            <a href="#" class="sidebar-link">
+            <a asp-controller="Dashboard" asp-action="Membresia"
+               class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Membresia" ? "active" : "")">
                 <i class="fa-solid fa-credit-card"></i> Membresía
             </a>
         </nav>
 
         <div class="sidebar-footer">
-            <!-- Info del socio -->
             <div class="sidebar-user">
                 <div class="sidebar-avatar">
                     @(Context.Session.GetString("SocioNombre")?[0] ?? 'S')
@@ -65,7 +67,6 @@
                 </div>
             </div>
 
-            <!-- Cerrar sesión -->
             <form asp-controller="Account" asp-action="Logout" method="post">
                 @Html.AntiForgeryToken()
                 <button type="submit" class="sidebar-logout">

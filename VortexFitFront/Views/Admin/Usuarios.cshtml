@@ -23,15 +23,15 @@
                    placeholder="Buscar por nombre o email..." class="form-input" />
         </div>
         <select name="plan" class="form-input form-select admin-filter-select">
-            <option value="Todos" selected="@(plan=="Todos")">Todos los planes</option>
+            <option value="Todos"  selected="@(plan=="Todos")">Todos los planes</option>
             <option value="Basico" selected="@(plan=="Basico")">Básico</option>
             <option value="Pro"    selected="@(plan=="Pro")">Pro</option>
             <option value="Elite"  selected="@(plan=="Elite")">Elite</option>
         </select>
         <select name="estado" class="form-input form-select admin-filter-select">
-            <option value="Todos"  selected="@(estado=="Todos")">Todos los estados</option>
-            <option value="Activo" selected="@(estado=="Activo")">Activo</option>
-            <option value="Inactivo" selected="@(estado=="Inactivo")">Inactivo</option>
+            <option value="Todos"      selected="@(estado=="Todos")">Todos los estados</option>
+            <option value="Activo"     selected="@(estado=="Activo")">Activo</option>
+            <option value="Inactivo"   selected="@(estado=="Inactivo")">Inactivo</option>
             <option value="Suspendido" selected="@(estado=="Suspendido")">Suspendido</option>
         </select>
         <button type="submit" class="btn-primary" style="white-space:nowrap;">
@@ -67,6 +67,7 @@
                         <th>Estado</th>
                         <th>Registro</th>
                         <th>Vencimiento</th>
+                        <th>Acciones</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -98,6 +99,12 @@
                                 @(s.FechaVencimiento.HasValue
                                     ? s.FechaVencimiento.Value.ToString("dd/MM/yyyy")
                                     : "—")
+                            </td>
+                            <td>
+                                <a asp-action="EditarUsuario" asp-route-id="@s.IdSocio"
+                                   class="admin-btn-edit" title="Editar usuario">
+                                    <i class="fa-solid fa-pen-to-square"></i>
+                                </a>
                             </td>
                         </tr>
                     }

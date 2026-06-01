@@ -1,0 +1,82 @@
+@model VortexFit.Models.EditarUsuarioViewModel
+@{
+    ViewData["Title"] = "Editar usuario — Admin Style Gym";
+    Layout = "_AdminLayout";
+}
+
+<div class="dash-header">
+    <div>
+        <p class="dash-saludo">Gestión → Usuarios</p>
+        <h1 class="dash-nombre">Editar usuario</h1>
+    </div>
+    <a asp-action="Usuarios" class="btn-outline">
+        <i class="fa-solid fa-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div style="max-width:640px;">
+    <div class="dash-card">
+
+        <!-- Cabecera del usuario -->
+        <div class="admin-edit-user-header">
+            <div class="admin-user-avatar" style="width:52px;height:52px;font-size:1.15rem;flex-shrink:0;">
+                @Model.NombreCompleto[0]
+            </div>
+            <div>
+                <p style="font-weight:700;font-size:1.05rem;margin:0 0 0.2rem;">@Model.NombreCompleto</p>
+                <p style="font-size:0.82rem;color:var(--gray);margin:0;">@Model.Email</p>
+            </div>
+        </div>
+
+        <form asp-action="EditarUsuario" method="post" novalidate>
+            @Html.AntiForgeryToken()
+            <input type="hidden" asp-for="IdSocio" />
+            <input type="hidden" asp-for="NombreCompleto" />
+            <input type="hidden" asp-for="Email" />
+
+            <div class="form-group">
+                <label class="form-label"><i class="fa-solid fa-bolt" style="color:var(--primary);margin-right:0.4rem;"></i>Plan de membresía</label>
+                <select asp-for="Plan" class="form-input form-select">
+                    <option value="Basico">Básico — S/ 49.90/mes</option>
+                    <option value="Pro">Pro — S/ 89.90/mes</option>
+                    <option value="Elite">Elite — S/ 149.90/mes</option>
+                </select>
+                <span asp-validation-for="Plan" class="form-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label"><i class="fa-solid fa-circle-check" style="color:#22c55e;margin-right:0.4rem;"></i>Estado de cuenta</label>
+                <select asp-for="Estado" class="form-input form-select">
+                    <option value="Activo">Activo</option>
+                    <option value="Inactivo">Inactivo</option>
+                    <option value="Suspendido">Suspendido</option>
+                </select>
+                <span asp-validation-for="Estado" class="form-error"></span>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label"><i class="fa-solid fa-phone" style="color:var(--gray);margin-right:0.4rem;"></i>Teléfono</label>
+                <input asp-for="Telefono" type="tel" class="form-input"
+                       placeholder="Ej: 999 123 456" maxlength="15" />
+            </div>
+
+            <div class="form-group">
+                <label class="form-label"><i class="fa-solid fa-calendar-days" style="color:var(--gray);margin-right:0.4rem;"></i>Fecha de vencimiento</label>
+                <input asp-for="FechaVencimiento" type="date" class="form-input"
+                       value="@(Model.FechaVencimiento.HasValue ? Model.FechaVencimiento.Value.ToString("yyyy-MM-dd") : "")" />
+                <span class="form-hint">Deja vacío si no aplica vencimiento fijo.</span>
+            </div>
+
+            <div class="perfil-actions" style="margin-top:1.75rem;">
+                <a asp-action="Usuarios" class="btn-outline">Cancelar</a>
+                <button type="submit" class="btn-primary">
+                    <i class="fa-solid fa-floppy-disk"></i> Guardar cambios
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+@section Scripts {
+    <partial name="_ValidationScriptsPartial" />
+}

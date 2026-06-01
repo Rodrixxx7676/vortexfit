@@ -1,0 +1,183 @@
+@model VortexFit.Models.ProgresoViewModel
+@{
+    ViewData["Title"] = "Mi progreso — Style Gym";
+    Layout = "_DashboardLayout";
+    int maxAsistencia = Model.AsistenciaMeses.Max();
+}
+
+<!-- HEADER -->
+<div class="dash-header">
+    <div>
+        <p class="dash-saludo">Mi panel</p>
+        <h1 class="dash-nombre">Mi progreso</h1>
+    </div>
+    <div class="dash-plan-badge" style="border-color:#a78bfa; color:#a78bfa;">
+        <i class="fa-solid fa-chart-line"></i> Estadísticas
+    </div>
+</div>
+
+<!-- STAT CARDS -->
+<div class="dash-stats">
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-dumbbell"></i></div>
+        <div class="stat-body">
+            <span class="stat-value">@Model.ClasesAsistidas</span>
+            <span class="stat-label">Clases totales</span>
+        </div>
+        <p class="stat-sub">Desde que te uniste</p>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="color:#f97316;"><i class="fa-solid fa-fire"></i></div>
+        <div class="stat-body">
+            <span class="stat-value" style="color:#f97316;">@Model.RachaActual</span>
+            <span class="stat-label">Racha actual</span>
+        </div>
+        <p class="stat-sub">días consecutivos</p>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="color:#a78bfa;"><i class="fa-solid fa-trophy"></i></div>
+        <div class="stat-body">
+            <span class="stat-value" style="color:#a78bfa;">@Model.RachaMejor</span>
+            <span class="stat-label">Mejor racha</span>
+        </div>
+        <p class="stat-sub">Récord personal</p>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="color:#22c55e;"><i class="fa-solid fa-calendar-check"></i></div>
+        <div class="stat-body">
+            <span class="stat-value" style="color:#22c55e;">@Model.AsistenciaMeses.Last()</span>
+            <span class="stat-label">Este mes</span>
+        </div>
+        <p class="stat-sub">clases asistidas</p>
+    </div>
+</div>
+
+<div class="dash-grid">
+
+    <!-- Asistencia mensual -->
+    <div class="dash-col">
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h2><i class="fa-solid fa-chart-bar"></i> Asistencia mensual</h2>
+                <span style="font-size:0.78rem; color:var(--gray);">Últimos 6 meses</span>
+            </div>
+
+            <div class="progreso-bar-chart">
+                @for (int i = 0; i < Model.AsistenciaMeses.Count; i++)
+                {
+                    var valor = Model.AsistenciaMeses[i];
+                    var pct   = maxAsistencia > 0 ? (valor * 100 / maxAsistencia) : 0;
+                    var esMes = i == Model.AsistenciaMeses.Count - 1;
+                    <div class="progreso-bar-col">
+                        <span class="progreso-bar-val">@valor</span>
+                        <div class="progreso-bar-track">
+                            <div class="progreso-bar-fill @(esMes ? "current" : "")"
+                                 style="height:@pct%;"></div>
+                        </div>
+                        <span class="progreso-bar-mes">@Model.NombresMeses[i]</span>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Consistencia semanal (grid de puntos) -->
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h2><i class="fa-solid fa-grip"></i> Consistencia — últimas 4 semanas</h2>
+            </div>
+            <div class="progreso-heatmap">
+                @{
+                    var diasSemana = new[] { "L", "M", "X", "J", "V", "S", "D" };
+                    // Datos simulados: 1=asistió, 0=no asistió
+                    var semanas = new int[][]
+                    {
+                        new[] { 1,0,1,1,0,1,0 },
+                        new[] { 1,1,0,1,1,0,0 },
+                        new[] { 0,1,1,1,0,1,0 },
+                        new[] { 1,0,1,0,1,1,0 },
+                    };
+                }
+                <div class="heatmap-header">
+                    @foreach (var d in diasSemana)
+                    {
+                        <span>@d</span>
+                    }
+                </div>
+                @foreach (var semana in semanas)
+                {
+                    <div class="heatmap-row">
+                        @foreach (var asistio in semana)
+                        {
+                            <div class="heatmap-cell @(asistio == 1 ? "on" : "off")"></div>
+                        }
+                    </div>
+                }
+            </div>
+        </div>
+    </div>
+
+    <!-- Récords personales -->
+    <div class="dash-col">
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h2><i class="fa-solid fa-medal"></i> Récords personales</h2>
+            </div>
+            <div class="progreso-records">
+                @foreach (var r in Model.Records)
+                {
+                    <div class="progreso-record-item">
+                        <div class="progreso-record-icon" style="background:rgba(255,255,255,0.05); color:@r.Color;">
+                            <i class="fa-solid @r.Icono"></i>
+                        </div>
+                        <div class="progreso-record-info">
+                            <span class="progreso-record-nombre">@r.Ejercicio</span>
+                            <span class="progreso-record-fecha"><i class="fa-regular fa-calendar"></i> @r.Fecha</span>
+                        </div>
+                        <div class="progreso-record-valor" style="color:@r.Color;">
+                            @r.Valor
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+
+        <!-- Objetivos -->
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h2><i class="fa-solid fa-bullseye"></i> Objetivos del mes</h2>
+            </div>
+            <div class="progreso-objetivos">
+                <div class="objetivo-item">
+                    <div class="objetivo-header">
+                        <span>Clases asistidas</span>
+                        <span style="color:var(--primary);">@Model.AsistenciaMeses.Last() / 16</span>
+                    </div>
+                    <div class="stat-progress-bar">
+                        <div class="stat-progress-fill"
+                             style="width:@(Model.AsistenciaMeses.Last() * 100 / 16)%; background:var(--primary);"></div>
+                    </div>
+                </div>
+                <div class="objetivo-item">
+                    <div class="objetivo-header">
+                        <span>Días de racha</span>
+                        <span style="color:#f97316;">@Model.RachaActual / 10</span>
+                    </div>
+                    <div class="stat-progress-bar">
+                        <div class="stat-progress-fill"
+                             style="width:@(Model.RachaActual * 100 / 10)%; background:#f97316;"></div>
+                    </div>
+                </div>
+                <div class="objetivo-item">
+                    <div class="objetivo-header">
+                        <span>Clases CrossFit</span>
+                        <span style="color:#ef4444;">3 / 6</span>
+                    </div>
+                    <div class="stat-progress-bar">
+                        <div class="stat-progress-fill" style="width:50%; background:#ef4444;"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

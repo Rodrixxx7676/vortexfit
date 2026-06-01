@@ -1,0 +1,143 @@
+@model VortexFit.Models.ClasesViewModel
+@{
+    ViewData["Title"] = "Mis clases — Style Gym";
+    Layout = "_DashboardLayout";
+    var dias = new[] { "Todos", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado" };
+}
+
+<!-- HEADER -->
+<div class="dash-header">
+    <div>
+        <p class="dash-saludo">Mi panel</p>
+        <h1 class="dash-nombre">Clases grupales</h1>
+    </div>
+    <div class="dash-plan-badge" style="border-color:var(--primary); color:var(--primary);">
+        <i class="fa-solid fa-calendar-days"></i> Horario semanal
+    </div>
+</div>
+
+<!-- FILTRO DE DÍAS -->
+<div class="clases-filtros">
+    @foreach (var dia in dias)
+    {
+        <a asp-action="Clases" asp-route-dia="@dia"
+           class="clases-filtro-btn @(Model.DiaFiltro == dia ? "active" : "")">
+            @(dia == "Todos" ? "Todos" : dia.Length > 5 ? dia[..3] : dia)
+        </a>
+    }
+</div>
+
+<!-- RESUMEN RÁPIDO -->
+<div class="dash-stats" style="margin-bottom:1.5rem;">
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-calendar-days"></i></div>
+        <div class="stat-body">
+            <span class="stat-value">@Model.Horario.Count</span>
+            <span class="stat-label">Clases disponibles</span>
+        </div>
+        <p class="stat-sub">@(Model.DiaFiltro == "Todos" ? "Esta semana" : Model.DiaFiltro)</p>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="color:#f97316;"><i class="fa-solid fa-fire"></i></div>
+        <div class="stat-body">
+            <span class="stat-value" style="color:#f97316;">4</span>
+            <span class="stat-label">Reservadas</span>
+        </div>
+        <p class="stat-sub">Este mes</p>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="color:#22c55e;"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="stat-body">
+            <span class="stat-value" style="color:#22c55e;">47</span>
+            <span class="stat-label">Asistidas</span>
+        </div>
+        <p class="stat-sub">Desde que te uniste</p>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="color:#a78bfa;"><i class="fa-solid fa-trophy"></i></div>
+        <div class="stat-body">
+            <span class="stat-value" style="color:#a78bfa;">5</span>
+            <span class="stat-label">Días de racha</span>
+        </div>
+        <p class="stat-sub">¡Sigue así!</p>
+    </div>
+</div>
+
+<!-- GRID DE CLASES -->
+@if (!Model.Horario.Any())
+{
+    <div class="dash-card" style="text-align:center; padding:3rem; color:var(--gray);">
+        <i class="fa-solid fa-calendar-xmark" style="font-size:2.5rem; opacity:0.2; display:block; margin-bottom:1rem;"></i>
+        No hay clases programadas para este día.
+    </div>
+}
+else
+{
+    @if (Model.DiaFiltro == "Todos")
+    {
+        @foreach (var dia in new[] { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado" })
+        {
+            var clasesDia = Model.Horario.Where(c => c.Dia == dia).ToList();
+            if (clasesDia.Any())
+            {
+                <div class="clases-dia-section">
+                    <h3 class="clases-dia-label">
+                        <i class="fa-solid fa-circle-dot" style="color:var(--primary);font-size:0.6rem;"></i>
+                        @dia
+                    </h3>
+                    <div class="clases-grid">
+                        @foreach (var c in clasesDia)
+                        {
+                            var cupoLibre = c.CupoMax - c.CupoActual;
+                            var cupoColor = cupoLibre > 5 ? "#22c55e" : cupoLibre > 2 ? "#eab308" : "#ef4444";
+                            <div class="clase-card">
+                                <div class="clase-card-top">
+                                    <span class="badge-class @c.BadgeClass">@c.Nombre</span>
+                                    <span class="clase-nivel-badge nivel-@c.Nivel.ToLower().Replace("é","e")">@c.Nivel</span>
+                                </div>
+                                <p class="clase-card-desc">@c.Descripcion</p>
+                                <div class="clase-card-meta">
+                                    <span><i class="fa-solid fa-clock"></i> @c.Hora · @c.Duracion min</span>
+                                    <span><i class="fa-solid fa-user-tie"></i> @c.Instructor</span>
+                                    <span style="color:@cupoColor;">
+                                        <i class="fa-solid fa-users"></i> @cupoLibre lugares libres
+                                    </span>
+                                </div>
+                                <button class="btn-reservar-full" onclick="mostrarToast('¡Reserva registrada para @c.Nombre del @c.Dia!', 'success')">
+                                    <i class="fa-solid fa-calendar-plus"></i> Reservar lugar
+                                </button>
+                            </div>
+                        }
+                    </div>
+                </div>
+            }
+        }
+    }
+    else
+    {
+        <div class="clases-grid">
+            @foreach (var c in Model.Horario)
+            {
+                var cupoLibre = c.CupoMax - c.CupoActual;
+                var cupoColor = cupoLibre > 5 ? "#22c55e" : cupoLibre > 2 ? "#eab308" : "#ef4444";
+                <div class="clase-card">
+                    <div class="clase-card-top">
+                        <span class="badge-class @c.BadgeClass">@c.Nombre</span>
+                        <span class="clase-nivel-badge nivel-@c.Nivel.ToLower().Replace("é","e")">@c.Nivel</span>
+                    </div>
+                    <p class="clase-card-desc">@c.Descripcion</p>
+                    <div class="clase-card-meta">
+                        <span><i class="fa-solid fa-clock"></i> @c.Hora · @c.Duracion min</span>
+                        <span><i class="fa-solid fa-user-tie"></i> @c.Instructor</span>
+                        <span style="color:@cupoColor;">
+                            <i class="fa-solid fa-users"></i> @cupoLibre lugares libres
+                        </span>
+                    </div>
+                    <button class="btn-reservar-full" onclick="mostrarToast('¡Reserva registrada para @c.Nombre!', 'success')">
+                        <i class="fa-solid fa-calendar-plus"></i> Reservar lugar
+                    </button>
+                </div>
+            }
+        </div>
+    }
+}

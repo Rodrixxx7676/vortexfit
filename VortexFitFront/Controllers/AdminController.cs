@@ -14,7 +14,7 @@ public class AdminController : Controller
         _db = db;
     }
 
-    // Verificación de rol administrador
+    // ── Guard ─────────────────────────────────────────────
     private IActionResult? RequireAdmin()
     {
         if (HttpContext.Session.GetString("SocioRol") != "Admin")
@@ -22,7 +22,9 @@ public class AdminController : Controller
         return null;
     }
 
-    // ── PANEL PRINCIPAL ────────────────────────────
+    // ════════════════════════════════════════════════
+    // PANEL PRINCIPAL
+    // ════════════════════════════════════════════════
     [HttpGet]
     public async Task<IActionResult> Index()
     {
@@ -45,11 +47,12 @@ public class AdminController : Controller
                 .ToList()
         };
 
-        ViewBag.AdminNombre = HttpContext.Session.GetString("SocioNombre") ?? "Administrador";
         return View(vm);
     }
 
-    // ── GESTIÓN DE USUARIOS ────────────────────────
+    // ════════════════════════════════════════════════
+    // USUARIOS — lista + filtros
+    // ════════════════════════════════════════════════
     [HttpGet]
     public async Task<IActionResult> Usuarios(string? buscar = null,
                                                string? plan   = null,
@@ -79,12 +82,60 @@ public class AdminController : Controller
         ViewBag.Buscar = buscar ?? string.Empty;
         ViewBag.Plan   = plan   ?? "Todos";
         ViewBag.Estado = estado ?? "Todos";
-        ViewBag.AdminNombre = HttpContext.Session.GetString("SocioNombre") ?? "Administrador";
 
         return View(lista);
     }
 
-    // ── GESTIÓN DE NOTICIAS ────────────────────────
+    // ════════════════════════════════════════════════
+    // USUARIOS — editar
+    // ════════════════════════════════════════════════
+    [HttpGet]
+    public async Task<IActionResult> EditarUsuario(int id)
+    {
+        if (RequireAdmin() is { } r) return r;
+
+        var socio = await _db.Socios.FindAsync(id);
+        if (socio == null || socio.Rol == "Admin") return NotFound();
+
+        var vm = new EditarUsuarioViewModel
+        {
+            IdSocio          = socio.IdSocio,
+            NombreCompleto   = socio.NombreCompleto,
+            Email            = socio.Email,
+            Plan             = socio.Plan,
+            Estado           = socio.Estado,
+            Telefono         = socio.Telefono,
+            FechaVencimiento = socio.FechaVencimiento
+        };
+
+        return View(vm);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditarUsuario(EditarUsuarioViewModel vm)
+    {
+        if (RequireAdmin() is { } r) return r;
+
+        if (!ModelState.IsValid)
+            return View(vm);
+
+        var socio = await _db.Socios.FindAsync(vm.IdSocio);
+        if (socio == null || socio.Rol == "Admin") return NotFound();
+
+        socio.Plan             = vm.Plan;
+        socio.Estado           = vm.Estado;
+        socio.Telefono         = vm.Telefono?.Trim();
+        socio.FechaVencimiento = vm.FechaVencimiento;
+        await _db.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = $"Usuario '{socio.NombreCompleto}' actualizado correctamente.";
+        return RedirectToAction(nameof(Usuarios));
+    }
+
+    // ════════════════════════════════════════════════
+    // NOTICIAS — lista
+    // ════════════════════════════════════════════════
     [HttpGet]
     public async Task<IActionResult> Noticias()
     {
@@ -94,15 +145,16 @@ public class AdminController : Controller
             .OrderByDescending(n => n.FechaPublicacion)
             .ToListAsync();
 
-        ViewBag.AdminNombre = HttpContext.Session.GetString("SocioNombre") ?? "Administrador";
         return View(noticias);
     }
 
+    // ════════════════════════════════════════════════
+    // NOTICIAS — crear
+    // ════════════════════════════════════════════════
     [HttpGet]
     public IActionResult CrearNoticia()
     {
         if (RequireAdmin() is { } r) return r;
-        ViewBag.AdminNombre = HttpContext.Session.GetString("SocioNombre") ?? "Administrador";
         return View(new Noticia());
     }
 
@@ -113,10 +165,7 @@ public class AdminController : Controller
         if (RequireAdmin() is { } r) return r;
 
         if (!ModelState.IsValid)
-        {
-            ViewBag.AdminNombre = HttpContext.Session.GetString("SocioNombre") ?? "Administrador";
             return View(model);
-        }
 
         model.FechaPublicacion = DateTime.UtcNow;
         model.Activo = true;
@@ -127,6 +176,45 @@ public class AdminController : Controller
         return RedirectToAction(nameof(Noticias));
     }
 
+    // ════════════════════════════════════════════════
+    // NOTICIAS — editar
+    // ════════════════════════════════════════════════
+    [HttpGet]
+    public async Task<IActionResult> EditarNoticia(int id)
+    {
+        if (RequireAdmin() is { } r) return r;
+
+        var noticia = await _db.Noticias.FindAsync(id);
+        if (noticia == null) return NotFound();
+
+        return View(noticia);
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> EditarNoticia(Noticia model)
+    {
+        if (RequireAdmin() is { } r) return r;
+
+        if (!ModelState.IsValid)
+            return View(model);
+
+        var noticia = await _db.Noticias.FindAsync(model.IdNoticia);
+        if (noticia == null) return NotFound();
+
+        noticia.Titulo    = model.Titulo;
+        noticia.Resumen   = model.Resumen;
+        noticia.Contenido = model.Contenido;
+        noticia.Categoria = model.Categoria;
+        await _db.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = "Noticia actualizada correctamente.";
+        return RedirectToAction(nameof(Noticias));
+    }
+
+    // ════════════════════════════════════════════════
+    // NOTICIAS — ocultar / restaurar
+    // ════════════════════════════════════════════════
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EliminarNoticia(int id)
@@ -136,10 +224,28 @@ public class AdminController : Controller
         var noticia = await _db.Noticias.FindAsync(id);
         if (noticia != null)
         {
-            noticia.Activo = false;   // soft-delete
+            noticia.Activo = false;
             await _db.SaveChangesAsync();
         }
 
+        TempData["SuccessMessage"] = "Noticia ocultada.";
+        return RedirectToAction(nameof(Noticias));
+    }
+
+    [HttpPost]
+    [ValidateAntiForgeryToken]
+    public async Task<IActionResult> RestaurarNoticia(int id)
+    {
+        if (RequireAdmin() is { } r) return r;
+
+        var noticia = await _db.Noticias.FindAsync(id);
+        if (noticia != null)
+        {
+            noticia.Activo = true;
+            await _db.SaveChangesAsync();
+        }
+
+        TempData["SuccessMessage"] = "Noticia restaurada y visible al público.";
         return RedirectToAction(nameof(Noticias));
     }
 }

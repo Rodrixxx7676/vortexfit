@@ -2,12 +2,19 @@
 @{
     ViewData["Title"] = "Noticias — Admin Style Gym";
     Layout = "_AdminLayout";
+    var activas  = Model.Count(n => n.Activo);
+    var ocultas  = Model.Count(n => !n.Activo);
 }
 
 <div class="dash-header">
     <div>
         <p class="dash-saludo">Gestión</p>
-        <h1 class="dash-nombre">Noticias <span style="color:var(--gray);font-size:1.1rem;font-weight:400;">(@Model.Count)</span></h1>
+        <h1 class="dash-nombre">
+            Noticias
+            <span style="color:var(--gray);font-size:1rem;font-weight:400;">
+                @activas publicadas · @ocultas ocultas
+            </span>
+        </h1>
     </div>
     <a asp-action="CrearNoticia" class="btn-primary">
         <i class="fa-solid fa-plus"></i> Nueva noticia
@@ -39,35 +46,69 @@
                 <tbody>
                     @foreach (var n in Model)
                     {
-                        <tr>
+                        <tr style="@(!n.Activo ? "opacity:0.55;" : "")">
                             <td class="admin-td-id">@n.IdNoticia</td>
                             <td>
-                                <a asp-controller="Noticias" asp-action="Detalle" asp-route-id="@n.IdNoticia"
-                                   target="_blank" style="color:var(--white); text-decoration:none; font-weight:500;">
-                                    @n.Titulo
-                                </a>
+                                @if (n.Activo)
+                                {
+                                    <a asp-controller="Noticias" asp-action="Detalle" asp-route-id="@n.IdNoticia"
+                                       target="_blank" style="color:var(--white); text-decoration:none; font-weight:500;">
+                                        @n.Titulo
+                                    </a>
+                                }
+                                else
+                                {
+                                    <span style="font-weight:500;">@n.Titulo</span>
+                                }
                             </td>
                             <td><span class="news-badge @n.Categoria.ToLower()">@n.Categoria</span></td>
                             <td class="admin-td-gray">@n.FechaPublicacion.ToString("dd/MM/yyyy")</td>
                             <td>
                                 @if (n.Activo)
                                 {
-                                    <span class="admin-estado-badge activo"><i class="fa-solid fa-circle" style="font-size:0.5rem;"></i> Publicada</span>
+                                    <span class="admin-estado-badge activo">
+                                        <i class="fa-solid fa-circle" style="font-size:0.5rem;"></i> Publicada
+                                    </span>
                                 }
                                 else
                                 {
-                                    <span class="admin-estado-badge inactivo"><i class="fa-solid fa-circle" style="font-size:0.5rem;"></i> Oculta</span>
+                                    <span class="admin-estado-badge inactivo">
+                                        <i class="fa-solid fa-circle" style="font-size:0.5rem;"></i> Oculta
+                                    </span>
                                 }
                             </td>
                             <td>
-                                <form asp-action="EliminarNoticia" method="post" style="display:inline;"
-                                      onsubmit="return confirm('¿Ocultar esta noticia?');">
-                                    @Html.AntiForgeryToken()
-                                    <input type="hidden" name="id" value="@n.IdNoticia" />
-                                    <button type="submit" class="admin-btn-danger" title="Ocultar">
-                                        <i class="fa-solid fa-eye-slash"></i>
-                                    </button>
-                                </form>
+                                <div class="admin-acciones-cell">
+                                    <!-- Editar -->
+                                    <a asp-action="EditarNoticia" asp-route-id="@n.IdNoticia"
+                                       class="admin-btn-edit" title="Editar noticia">
+                                        <i class="fa-solid fa-pen-to-square"></i>
+                                    </a>
+
+                                    @if (n.Activo)
+                                    {
+                                        <!-- Ocultar -->
+                                        <form asp-action="EliminarNoticia" method="post" style="display:inline;"
+                                              onsubmit="return confirm('¿Ocultar esta noticia del sitio público?');">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@n.IdNoticia" />
+                                            <button type="submit" class="admin-btn-danger" title="Ocultar">
+                                                <i class="fa-solid fa-eye-slash"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                    else
+                                    {
+                                        <!-- Restaurar -->
+                                        <form asp-action="RestaurarNoticia" method="post" style="display:inline;">
+                                            @Html.AntiForgeryToken()
+                                            <input type="hidden" name="id" value="@n.IdNoticia" />
+                                            <button type="submit" class="admin-btn-restore" title="Restaurar y publicar">
+                                                <i class="fa-solid fa-eye"></i>
+                                            </button>
+                                        </form>
+                                    }
+                                </div>
                             </td>
                         </tr>
                     }
