@@ -9,12 +9,22 @@ public class VortexFitDbContext : DbContext
         : base(options) { }
 
     // ── Tablas ──────────────────────────────────
-    public DbSet<Socio> Socios { get; set; }
+    public DbSet<Socio>    Socios    { get; set; }
+    public DbSet<Noticia>  Noticias  { get; set; }
 
     // ── Configuración del modelo ─────────────────
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);
+
+        modelBuilder.Entity<Noticia>(entity =>
+        {
+            entity.Property(n => n.FechaPublicacion)
+                  .HasDefaultValueSql("SYSDATE");
+
+            entity.Property(n => n.Activo)
+                  .HasDefaultValue(true);
+        });
 
         modelBuilder.Entity<Socio>(entity =>
         {

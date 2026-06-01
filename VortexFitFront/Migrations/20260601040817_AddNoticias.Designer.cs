@@ -2,6 +2,7 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Oracle.EntityFrameworkCore.Metadata;
 using VortexFit.Data;
@@ -11,9 +12,11 @@ using VortexFit.Data;
 namespace VortexFit.Migrations
 {
     [DbContext(typeof(VortexFitDbContext))]
-    partial class VortexFitDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260601040817_AddNoticias")]
+    partial class AddNoticias
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -48,10 +48,10 @@
 
         <!-- Links escritorio -->
         <ul class="navbar-links">
-            <li><a href="#servicios">Servicios</a></li>
-            <li><a href="#clases">Clases</a></li>
-            <li><a href="#planes">Planes</a></li>
-            <li><a href="#testimonios">Testimonios</a></li>
+            <li><a href="/#servicios">Servicios</a></li>
+            <li><a href="/#clases">Clases</a></li>
+            <li><a href="/#planes">Planes</a></li>
+            <li><a asp-controller="Noticias" asp-action="Index">Noticias</a></li>
         </ul>
 
         <!-- Botones escritorio -->
@@ -79,10 +79,10 @@
 
     <!-- Menú móvil -->
     <div class="navbar-mobile-menu" id="mobileMenu">
-        <a href="#servicios"   class="mobile-link">Servicios</a>
-        <a href="#clases"      class="mobile-link">Clases</a>
-        <a href="#planes"      class="mobile-link">Planes</a>
-        <a href="#testimonios" class="mobile-link">Testimonios</a>
+        <a href="/#servicios"  class="mobile-link">Servicios</a>
+        <a href="/#clases"     class="mobile-link">Clases</a>
+        <a href="/#planes"     class="mobile-link">Planes</a>
+        <a asp-controller="Noticias" asp-action="Index" class="mobile-link">Noticias</a>
         <div class="navbar-mobile-cta">
             <a asp-controller="Account" asp-action="Login"    class="btn-outline">Iniciar sesión</a>
             <a asp-controller="Account" asp-action="Register" class="btn-primary">Registrarse gratis</a>

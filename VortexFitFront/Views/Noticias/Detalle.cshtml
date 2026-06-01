@@ -1,0 +1,106 @@
+@model VortexFit.Models.Noticia
+@{
+    ViewData["Title"] = Model.Titulo + " — Style Gym";
+    Layout = "_Layout";
+    var relacionadas = ViewBag.Relacionadas as List<VortexFit.Models.Noticia>
+                       ?? new List<VortexFit.Models.Noticia>();
+}
+
+<section class="news-detail-section">
+    <div class="container news-detail-container">
+
+        <!-- ── Columna principal ── -->
+        <article class="news-article">
+
+            <!-- Cabecera -->
+            <div class="news-article-header">
+                <a href="@Url.Action("Index", "Noticias")" class="news-back-link">
+                    <i class="fa-solid fa-arrow-left"></i> Volver a noticias
+                </a>
+                <div class="news-article-meta">
+                    <span class="news-badge @Model.Categoria.ToLower()">@Model.Categoria</span>
+                    <span class="news-date">
+                        <i class="fa-regular fa-calendar"></i>
+                        @Model.FechaPublicacion.ToString("dd 'de' MMMM 'de' yyyy")
+                    </span>
+                </div>
+                <h1 class="news-article-title">@Model.Titulo</h1>
+                @if (!string.IsNullOrEmpty(Model.Resumen))
+                {
+                    <p class="news-article-resumen">@Model.Resumen</p>
+                }
+                <hr class="news-divider" />
+            </div>
+
+            <!-- Cuerpo -->
+            <div class="news-article-body">
+                @foreach (var bloque in Model.Contenido.Split('\n'))
+                {
+                    if (string.IsNullOrWhiteSpace(bloque))
+                    {
+                        <br />
+                    }
+                    else if (bloque.TrimStart().StartsWith("**") && bloque.TrimEnd().EndsWith("**"))
+                    {
+                        <p class="news-bold-line">@bloque.Trim().Trim('*')</p>
+                    }
+                    else if (bloque.TrimStart().StartsWith("- "))
+                    {
+                        <p class="news-list-item">
+                            <i class="fa-solid fa-check" style="color:var(--primary);margin-right:0.4rem;"></i>
+                            @bloque.TrimStart().Substring(2)
+                        </p>
+                    }
+                    else if (bloque.TrimStart().StartsWith("1.") ||
+                             bloque.TrimStart().StartsWith("2.") ||
+                             bloque.TrimStart().StartsWith("3.") ||
+                             bloque.TrimStart().StartsWith("4.") ||
+                             bloque.TrimStart().StartsWith("5."))
+                    {
+                        var dot = bloque.IndexOf('.');
+                        var num = bloque.Substring(0, dot + 1).Trim();
+                        var txt = bloque.Substring(dot + 1).Trim();
+                        <p class="news-list-item">
+                            <span class="news-num">@num</span>
+                            @txt
+                        </p>
+                    }
+                    else
+                    {
+                        <p>@bloque.Trim()</p>
+                    }
+                }
+            </div>
+
+        </article>
+
+        <!-- ── Sidebar: noticias relacionadas ── -->
+        @if (relacionadas.Any())
+        {
+            <aside class="news-sidebar">
+                <h3 class="news-sidebar-title">
+                    <i class="fa-solid fa-newspaper"></i> Más noticias
+                </h3>
+                <div class="news-sidebar-list">
+                    @foreach (var r in relacionadas)
+                    {
+                        <a href="@Url.Action("Detalle", "Noticias", new { id = r.IdNoticia })"
+                           class="news-sidebar-item">
+                            <span class="news-badge @r.Categoria.ToLower()" style="font-size:0.68rem;">@r.Categoria</span>
+                            <span class="news-sidebar-item-title">@r.Titulo</span>
+                            <span class="news-sidebar-item-date">
+                                <i class="fa-regular fa-calendar"></i>
+                                @r.FechaPublicacion.ToString("dd MMM yyyy")
+                            </span>
+                        </a>
+                    }
+                </div>
+                <a href="@Url.Action("Index", "Noticias")" class="btn-outline"
+                   style="display:block; text-align:center; margin-top:1.25rem;">
+                    Ver todas las noticias
+                </a>
+            </aside>
+        }
+
+    </div>
+</section>

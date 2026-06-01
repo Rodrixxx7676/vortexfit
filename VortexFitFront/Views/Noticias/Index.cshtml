@@ -1,0 +1,75 @@
+@model List<VortexFit.Models.Noticia>
+@{
+    ViewData["Title"] = "Noticias — Style Gym";
+    Layout = "_Layout";
+    var categorias   = ViewBag.Categorias as List<string> ?? new List<string>();
+    var catActual    = (string)(ViewBag.CategoriaActual ?? "Todas");
+}
+
+<!-- ══════════════════════════════════════
+     HERO DE SECCIÓN
+══════════════════════════════════════ -->
+<section class="news-hero">
+    <div class="news-hero-inner">
+        <span class="section-label"><i class="fa-solid fa-newspaper"></i> Novedades del gym</span>
+        <h1 class="section-title" style="font-size:2.4rem; margin-top:0.5rem;">Noticias &amp; Comunicados</h1>
+        <p class="section-sub" style="margin: 0 auto; max-width:540px;">
+            Entérate de los últimos eventos, cambios de horario, nuevas instalaciones
+            y todo lo que pasa en Style Gym.
+        </p>
+    </div>
+</section>
+
+<!-- ══════════════════════════════════════
+     FILTROS DE CATEGORÍA
+══════════════════════════════════════ -->
+<section class="news-section">
+    <div class="container">
+
+        <div class="news-filters">
+            <a href="@Url.Action("Index", "Noticias")"
+               class="news-filter-btn @(catActual == "Todas" ? "active" : "")">
+                Todas
+            </a>
+            @foreach (var cat in categorias)
+            {
+                <a href="@Url.Action("Index", "Noticias", new { categoria = cat })"
+                   class="news-filter-btn @(catActual == cat ? "active" : "")">
+                    @cat
+                </a>
+            }
+        </div>
+
+        <!-- ── Grid de tarjetas ── -->
+        @if (!Model.Any())
+        {
+            <div class="news-empty">
+                <i class="fa-solid fa-newspaper"></i>
+                <p>No hay noticias disponibles en esta categoría.</p>
+            </div>
+        }
+        else
+        {
+            <div class="news-grid">
+                @foreach (var n in Model)
+                {
+                    <a href="@Url.Action("Detalle", "Noticias", new { id = n.IdNoticia })" class="news-card">
+                        <div class="news-card-header">
+                            <span class="news-badge @n.Categoria.ToLower()">@n.Categoria</span>
+                            <span class="news-date">
+                                <i class="fa-regular fa-calendar"></i>
+                                @n.FechaPublicacion.ToString("dd MMM yyyy")
+                            </span>
+                        </div>
+                        <h3 class="news-card-title">@n.Titulo</h3>
+                        <p class="news-card-resumen">@n.Resumen</p>
+                        <span class="news-read-more">
+                            Leer más <i class="fa-solid fa-arrow-right"></i>
+                        </span>
+                    </a>
+                }
+            </div>
+        }
+
+    </div>
+</section>
