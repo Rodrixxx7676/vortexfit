@@ -1,0 +1,101 @@
+@model List<VortexFit.Models.Asistencia>
+@{
+    ViewData["Title"] = "Asistencias — Admin Style Gym";
+    Layout = "_AdminLayout";
+    var buscar = ViewBag.Buscar as string ?? "";
+}
+
+<div class="dash-header">
+    <div>
+        <p class="dash-saludo">Acceso</p>
+        <h1 class="dash-nombre">Historial de asistencias <span style="color:var(--gray);font-size:1rem;font-weight:400;">(@Model.Count)</span></h1>
+    </div>
+    <a asp-action="EscanearQR" class="btn-primary">
+        <i class="fa-solid fa-qrcode"></i> Escanear QR
+    </a>
+</div>
+
+<div class="dash-card" style="margin-bottom:1.5rem;">
+    <form method="get" asp-action="Asistencias" class="admin-filters">
+        <div class="admin-filter-input">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" name="buscar" value="@buscar"
+                   placeholder="Buscar por nombre o email..." class="form-input" />
+        </div>
+        <button type="submit" class="btn-primary">
+            <i class="fa-solid fa-filter"></i> Buscar
+        </button>
+        @if (!string.IsNullOrEmpty(buscar))
+        {
+            <a asp-action="Asistencias" class="btn-outline">Limpiar</a>
+        }
+    </form>
+</div>
+
+<div class="dash-card">
+    @if (!Model.Any())
+    {
+        <div style="text-align:center; padding:3rem; color:var(--gray);">
+            <i class="fa-solid fa-clipboard-list" style="font-size:2.5rem; opacity:0.2; display:block; margin-bottom:1rem;"></i>
+            No hay asistencias registradas aún.
+        </div>
+    }
+    else
+    {
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Socio</th>
+                        <th>Clase</th>
+                        <th>Fecha y hora</th>
+                        <th>Tipo</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var a in Model)
+                    {
+                        <tr>
+                            <td class="admin-td-id">@a.IdAsistencia</td>
+                            <td>
+                                <div class="admin-user-cell">
+                                    <div class="admin-user-avatar-sm">@a.Socio.NombreCompleto[0]</div>
+                                    <div>
+                                        <div>@a.Socio.NombreCompleto</div>
+                                        <div style="font-size:0.75rem;color:var(--gray);">@a.Socio.Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                @if (!string.IsNullOrEmpty(a.NombreClase))
+                                {
+                                    <span class="badge-class badge-@a.NombreClase.ToLower()">@a.NombreClase</span>
+                                }
+                                else
+                                {
+                                    <span class="admin-td-gray">—</span>
+                                }
+                            </td>
+                            <td class="admin-td-gray">@a.Fecha.ToLocalTime().ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                @if (a.Tipo == "QR")
+                                {
+                                    <span style="font-size:0.78rem; color:var(--primary);">
+                                        <i class="fa-solid fa-qrcode"></i> QR
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span style="font-size:0.78rem; color:var(--gray);">
+                                        <i class="fa-solid fa-keyboard"></i> Manual
+                                    </span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

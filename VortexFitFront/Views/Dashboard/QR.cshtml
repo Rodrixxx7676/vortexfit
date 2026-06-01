@@ -1,0 +1,75 @@
+@model VortexFit.Models.Socio
+@{
+    ViewData["Title"] = "Mi QR — Style Gym";
+    Layout = "_DashboardLayout";
+}
+
+<div class="dash-header">
+    <div>
+        <p class="dash-saludo">Mi panel</p>
+        <h1 class="dash-nombre">Mi código QR</h1>
+    </div>
+</div>
+
+<div class="qr-page">
+
+    <!-- QR principal -->
+    <div class="dash-card qr-card">
+        <div class="qr-avatar">@Model.NombreCompleto[0]</div>
+        <h2 class="qr-nombre">@Model.NombreCompleto</h2>
+        <p class="qr-plan">Plan @Model.Plan</p>
+
+        <div class="qr-img-wrap">
+            <img src="@ViewBag.QrDataUrl" alt="QR de acceso" class="qr-img" />
+            <div class="qr-corner tl"></div>
+            <div class="qr-corner tr"></div>
+            <div class="qr-corner bl"></div>
+            <div class="qr-corner br"></div>
+        </div>
+
+        <p class="qr-codigo">@ViewBag.Codigo</p>
+        <p class="qr-hint">
+            <i class="fa-solid fa-circle-info"></i>
+            Muestra este código al ingresar al gimnasio
+        </p>
+    </div>
+
+    <!-- Info lateral -->
+    <div class="qr-side">
+
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h2><i class="fa-solid fa-circle-question"></i> ¿Cómo funciona?</h2>
+            </div>
+            <div class="qr-steps">
+                <div class="qr-step">
+                    <div class="qr-step-num">1</div>
+                    <p>Llega al gimnasio y abre esta pantalla en tu celular.</p>
+                </div>
+                <div class="qr-step">
+                    <div class="qr-step-num">2</div>
+                    <p>El personal escanea tu código QR en recepción.</p>
+                </div>
+                <div class="qr-step">
+                    <div class="qr-step-num">3</div>
+                    <p>Tu asistencia queda registrada automáticamente.</p>
+                </div>
+                <div class="qr-step">
+                    <div class="qr-step-num">4</div>
+                    <p>Revisa tu historial en "Mi progreso".</p>
+                </div>
+            </div>
+        </div>
+
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h2><i class="fa-solid fa-shield-halved"></i> Seguridad</h2>
+            </div>
+            <p style="font-size:0.88rem; color:var(--gray); line-height:1.6;">
+                Tu código es único e intransferible. No lo compartas con nadie.
+                Si crees que fue comprometido, contacta a recepción.
+            </p>
+        </div>
+
+    </div>
+</div>

@@ -1,0 +1,140 @@
+@{
+    ViewData["Title"] = "Escanear QR — Admin Style Gym";
+    Layout = "_AdminLayout";
+    var clases = new[] { "Spinning", "Yoga", "CrossFit", "Zumba", "Box" };
+}
+
+<div class="dash-header">
+    <div>
+        <p class="dash-saludo">Acceso</p>
+        <h1 class="dash-nombre">Escanear QR</h1>
+    </div>
+    <a asp-action="Asistencias" class="btn-outline">
+        <i class="fa-solid fa-list"></i> Historial
+    </a>
+</div>
+
+<div class="qr-scanner-grid">
+
+    <!-- Cámara QR -->
+    <div class="dash-card">
+        <div class="dash-card-header">
+            <h2><i class="fa-solid fa-camera"></i> Cámara</h2>
+            <button id="btnCamara" class="btn-outline" style="font-size:0.82rem; padding:0.35rem 0.85rem;">
+                <i class="fa-solid fa-play"></i> Activar cámara
+            </button>
+        </div>
+        <div id="qr-video-wrap" style="display:none;">
+            <video id="qr-video" autoplay playsinline style="width:100%; border-radius:12px; background:#000;"></video>
+            <canvas id="qr-canvas" style="display:none;"></canvas>
+            <p id="qr-status" style="text-align:center; margin-top:0.75rem; font-size:0.85rem; color:var(--gray);">
+                <i class="fa-solid fa-spinner fa-spin"></i> Apunta la cámara al código QR...
+            </p>
+        </div>
+        <p style="font-size:0.82rem; color:var(--gray); margin-top:0.75rem;">
+            <i class="fa-solid fa-circle-info" style="color:var(--primary);"></i>
+            Requiere HTTPS en producción. En desarrollo, usa el formulario manual.
+        </p>
+    </div>
+
+    <!-- Formulario manual -->
+    <div class="dash-card">
+        <div class="dash-card-header">
+            <h2><i class="fa-solid fa-keyboard"></i> Entrada manual</h2>
+        </div>
+        <form asp-action="MarcarAsistencia" method="post" id="formManual">
+            @Html.AntiForgeryToken()
+            <div class="form-group">
+                <label class="form-label">Código de acceso del socio</label>
+                <div style="display:flex; gap:0.5rem;">
+                    <input type="text" name="codigo" id="inputCodigo"
+                           class="form-input" placeholder="Ej: A3F9C12B4D78"
+                           maxlength="20" autocomplete="off"
+                           style="text-transform:uppercase; letter-spacing:2px; font-weight:700; font-family:monospace;" />
+                    <button type="button" id="btnLimpiar" class="btn-outline"
+                            style="white-space:nowrap;">
+                        <i class="fa-solid fa-xmark"></i>
+                    </button>
+                </div>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Clase (opcional)</label>
+                <select name="nombreClase" class="form-input form-select">
+                    <option value="">Sin especificar</option>
+                    @foreach (var c in clases)
+                    {
+                        <option value="@c">@c</option>
+                    }
+                </select>
+            </div>
+            <button type="submit" class="btn-primary" style="width:100%;">
+                <i class="fa-solid fa-circle-check"></i> Registrar asistencia
+            </button>
+        </form>
+    </div>
+
+</div>
+
+@section Scripts {
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script>
+    const btnCamara   = document.getElementById('btnCamara');
+    const videoWrap   = document.getElementById('qr-video-wrap');
+    const video       = document.getElementById('qr-video');
+    const canvas      = document.getElementById('qr-canvas');
+    const ctx         = canvas.getContext('2d');
+    const status      = document.getElementById('qr-status');
+    const inputCodigo = document.getElementById('inputCodigo');
+    const formManual  = document.getElementById('formManual');
+    const btnLimpiar  = document.getElementById('btnLimpiar');
+
+    btnLimpiar.addEventListener('click', () => { inputCodigo.value = ''; inputCodigo.focus(); });
+
+    // Forzar mayúsculas
+    inputCodigo.addEventListener('input', () => {
+        inputCodigo.value = inputCodigo.value.toUpperCase();
+    });
+
+    let scanning = false;
+
+    btnCamara.addEventListener('click', async () => {
+        if (scanning) {
+            video.srcObject?.getTracks().forEach(t => t.stop());
+            scanning = false;
+            videoWrap.style.display = 'none';
+            btnCamara.innerHTML = '<i class="fa-solid fa-play"></i> Activar cámara';
+            return;
+        }
+        try {
+            const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } });
+            video.srcObject = stream;
+            videoWrap.style.display = 'block';
+            btnCamara.innerHTML = '<i class="fa-solid fa-stop"></i> Detener';
+            scanning = true;
+            requestAnimationFrame(scan);
+        } catch {
+            status.textContent = 'No se pudo acceder a la cámara.';
+        }
+    });
+
+    function scan() {
+        if (!scanning) return;
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.width  = video.videoWidth;
+            canvas.height = video.videoHeight;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const img  = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(img.data, img.width, img.height);
+            if (code) {
+                inputCodigo.value = code.data.toUpperCase();
+                status.innerHTML  = '<i class="fa-solid fa-circle-check" style="color:#22c55e;"></i> Código detectado: ' + code.data;
+                video.srcObject?.getTracks().forEach(t => t.stop());
+                scanning = false;
+                setTimeout(() => formManual.submit(), 600);
+                return;
+            }
+        }
+        requestAnimationFrame(scan);
+    }
+</script>
+}

@@ -45,6 +45,26 @@ self.addEventListener('activate', event => {
   );
 });
 
+// ── PUSH ──────────────────────────────────────
+self.addEventListener('push', event => {
+  let data = { title: 'Style Gym', body: 'Tienes una clase próximamente.', icon: '/images/icons/icon-192.png', url: '/Dashboard/Clases' };
+  try { if (event.data) data = { ...data, ...event.data.json() }; } catch {}
+  event.waitUntil(
+    self.registration.showNotification(data.title, {
+      body: data.body,
+      icon: data.icon,
+      badge: '/images/icons/icon-192.png',
+      data: { url: data.url }
+    })
+  );
+});
+
+self.addEventListener('notificationclick', event => {
+  event.notification.close();
+  const target = event.notification.data?.url || '/Dashboard';
+  event.waitUntil(clients.openWindow(target));
+});
+
 // ── FETCH ─────────────────────────────────────
 self.addEventListener('fetch', event => {
   const { request } = event;

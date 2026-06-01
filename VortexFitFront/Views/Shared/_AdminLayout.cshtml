@@ -42,6 +42,20 @@
                class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() is "Noticias" or "CrearNoticia" ? "active" : "")">
                 <i class="fa-solid fa-newspaper"></i> Noticias
             </a>
+            <a asp-controller="Admin" asp-action="Reservas"
+               class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Reservas" ? "active" : "")">
+                <i class="fa-solid fa-calendar-check"></i> Reservas
+            </a>
+
+            <span class="sidebar-section-label">Acceso</span>
+            <a asp-controller="Admin" asp-action="EscanearQR"
+               class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() is "EscanearQR" or "MarcarAsistencia" ? "active" : "")">
+                <i class="fa-solid fa-qrcode"></i> Escanear QR
+            </a>
+            <a asp-controller="Admin" asp-action="Asistencias"
+               class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Asistencias" ? "active" : "")">
+                <i class="fa-solid fa-clipboard-list"></i> Asistencias
+            </a>
 
             <span class="sidebar-section-label">Sitio</span>
             <a href="/" class="sidebar-link" target="_blank">

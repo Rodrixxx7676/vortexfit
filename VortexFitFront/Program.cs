@@ -1,42 +1,50 @@
 using Microsoft.EntityFrameworkCore;
 using VortexFit.Data;
 using VortexFit.Models;
+using VortexFit.Services;
+using WebPush;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// ── Oracle DbContext ──────────────────────────────
+// ── Oracle DbContext ───────────────────────────────────────
 builder.Services.AddDbContext<VortexFitDbContext>(options =>
     options.UseOracle(builder.Configuration.GetConnectionString("OracleDb")));
 
-// ── Sesiones ──────────────────────────────────────
+// ── Sesiones ───────────────────────────────────────────────
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout           = TimeSpan.FromMinutes(30);
-    options.Cookie.HttpOnly       = true;
-    options.Cookie.IsEssential    = true;
-    options.Cookie.Name           = ".StyleGym.Session";
-    options.Cookie.SameSite       = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+    options.IdleTimeout        = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly    = true;
+    options.Cookie.IsEssential = true;
+    options.Cookie.Name        = ".StyleGym.Session";
+    options.Cookie.SameSite    = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
 });
 
-// ── MVC ──────────────────────────────────────────
+// ── MVC ───────────────────────────────────────────────────
 builder.Services.AddControllersWithViews();
 
-// ── Antiforgery: quitar X-Frame-Options + cookie Lax para VS Code preview ──
+// ── Antiforgery ───────────────────────────────────────────
 builder.Services.AddAntiforgery(options =>
 {
     options.SuppressXFrameOptionsHeader = true;
     options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
 });
 
+// ── Notificaciones push (servicio de fondo) ───────────────
+builder.Services.AddHostedService<PushNotificationService>();
+
 var app = builder.Build();
 
-// ── Migraciones pendientes + Seed admin ───────────────
+// ══════════════════════════════════════════════════════════
+// INICIO: migraciones, seeds, VAPID keys
+// ══════════════════════════════════════════════════════════
 {
     using var scope = app.Services.CreateScope();
     var db = scope.ServiceProvider.GetRequiredService<VortexFitDbContext>();
     await db.Database.MigrateAsync();
 
+    // ── Seed admin ─────────────────────────────────────
     if (!await db.Socios.AnyAsync(s => s.Rol == "Admin"))
     {
         db.Socios.Add(new Socio
@@ -47,23 +55,43 @@ var app = builder.Build();
             Plan             = "Elite",
             Rol              = "Admin",
             Estado           = "Activo",
+            CodigoAcceso     = GenerarCodigo(),
             FechaRegistro    = DateTime.UtcNow,
             FechaVencimiento = DateTime.UtcNow.AddYears(99)
         });
         await db.SaveChangesAsync();
     }
+
+    // ── Asignar CodigoAcceso a socios que no tienen ─────
+    var sinCodigo = await db.Socios
+        .Where(s => s.CodigoAcceso == null || s.CodigoAcceso == string.Empty)
+        .ToListAsync();
+    foreach (var s in sinCodigo)
+        s.CodigoAcceso = GenerarCodigo();
+    if (sinCodigo.Any())
+        await db.SaveChangesAsync();
+
+    // ── VAPID keys: generar si no están configuradas ───
+    var vapid = app.Configuration.GetSection("Vapid");
+    if (string.IsNullOrEmpty(vapid["PublicKey"]))
+    {
+        var keys    = VapidHelper.GenerateVapidKeys();
+        var keysFile = Path.Combine(Directory.GetCurrentDirectory(), "vapid-keys.json");
+        await File.WriteAllTextAsync(keysFile,
+            $"{{\"PublicKey\":\"{keys.PublicKey}\",\"PrivateKey\":\"{keys.PrivateKey}\"}}");
+        app.Logger.LogWarning("VAPID keys generados y guardados en vapid-keys.json");
+        app.Logger.LogWarning("VAPID Public:  {Key}", keys.PublicKey);
+    }
 }
 
-// ── Manejo de errores ─────────────────────────────
+// ── Manejo de errores ──────────────────────────────────────
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
     app.UseHsts();
 }
 
-// ── 404 personalizado ─────────────────────────────
 app.UseStatusCodePagesWithReExecute("/Home/NotFound");
-
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
@@ -75,3 +103,6 @@ app.MapControllerRoute(
     pattern: "{controller=Home}/{action=Index}/{id?}");
 
 app.Run();
+
+static string GenerarCodigo() =>
+    Guid.NewGuid().ToString("N")[..12].ToUpper();

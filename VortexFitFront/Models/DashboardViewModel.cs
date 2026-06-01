@@ -47,9 +47,10 @@ public class HorarioClase
 
 public class ClasesViewModel
 {
-    public Socio              Socio     { get; set; } = null!;
-    public List<HorarioClase> Horario   { get; set; } = new();
-    public string             DiaFiltro { get; set; } = "Todos";
+    public Socio              Socio       { get; set; } = null!;
+    public List<HorarioClase> Horario     { get; set; } = new();
+    public string             DiaFiltro   { get; set; } = "Todos";
+    public HashSet<string>    MisReservas { get; set; } = new();
 }
 
 // ── Progreso ───────────────────────────────────────────────

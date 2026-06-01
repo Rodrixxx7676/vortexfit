@@ -40,26 +40,26 @@
     <div class="stat-card">
         <div class="stat-icon" style="color:#f97316;"><i class="fa-solid fa-fire"></i></div>
         <div class="stat-body">
-            <span class="stat-value" style="color:#f97316;">4</span>
+            <span class="stat-value" style="color:#f97316;">@Model.MisReservas.Count</span>
             <span class="stat-label">Reservadas</span>
         </div>
-        <p class="stat-sub">Este mes</p>
+        <p class="stat-sub">Activas</p>
     </div>
     <div class="stat-card">
         <div class="stat-icon" style="color:#22c55e;"><i class="fa-solid fa-circle-check"></i></div>
         <div class="stat-body">
-            <span class="stat-value" style="color:#22c55e;">47</span>
-            <span class="stat-label">Asistidas</span>
+            <span class="stat-value" style="color:#22c55e;">@Model.Socio.NombreCompleto[0]</span>
+            <span class="stat-label">Tu plan</span>
         </div>
-        <p class="stat-sub">Desde que te uniste</p>
+        <p class="stat-sub">@Model.Socio.Plan</p>
     </div>
     <div class="stat-card">
-        <div class="stat-icon" style="color:#a78bfa;"><i class="fa-solid fa-trophy"></i></div>
+        <div class="stat-icon" style="color:#a78bfa;"><i class="fa-solid fa-qrcode"></i></div>
         <div class="stat-body">
-            <span class="stat-value" style="color:#a78bfa;">5</span>
-            <span class="stat-label">Días de racha</span>
+            <span class="stat-value" style="color:#a78bfa; font-size:0.9rem;">QR</span>
+            <span class="stat-label">Acceso</span>
         </div>
-        <p class="stat-sub">¡Sigue así!</p>
+        <p class="stat-sub"><a asp-action="QR" style="color:var(--primary);">Ver mi QR</a></p>
     </div>
 </div>
 
@@ -75,22 +75,23 @@ else
 {
     @if (Model.DiaFiltro == "Todos")
     {
-        @foreach (var dia in new[] { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado" })
+        @foreach (var diaGrupo in new[] { "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado" })
         {
-            var clasesDia = Model.Horario.Where(c => c.Dia == dia).ToList();
+            var clasesDia = Model.Horario.Where(c => c.Dia == diaGrupo).ToList();
             if (clasesDia.Any())
             {
                 <div class="clases-dia-section">
                     <h3 class="clases-dia-label">
                         <i class="fa-solid fa-circle-dot" style="color:var(--primary);font-size:0.6rem;"></i>
-                        @dia
+                        @diaGrupo
                     </h3>
                     <div class="clases-grid">
                         @foreach (var c in clasesDia)
                         {
                             var cupoLibre = c.CupoMax - c.CupoActual;
                             var cupoColor = cupoLibre > 5 ? "#22c55e" : cupoLibre > 2 ? "#eab308" : "#ef4444";
-                            <div class="clase-card">
+                            var estaReservada = Model.MisReservas.Contains($"{c.Nombre}|{c.Dia}|{c.Hora}");
+                            <div class="clase-card @(estaReservada ? "clase-card-reservada" : "")">
                                 <div class="clase-card-top">
                                     <span class="badge-class @c.BadgeClass">@c.Nombre</span>
                                     <span class="clase-nivel-badge nivel-@c.Nivel.ToLower().Replace("é","e")">@c.Nivel</span>
@@ -103,9 +104,37 @@ else
                                         <i class="fa-solid fa-users"></i> @cupoLibre lugares libres
                                     </span>
                                 </div>
-                                <button class="btn-reservar-full" onclick="mostrarToast('¡Reserva registrada para @c.Nombre del @c.Dia!', 'success')">
-                                    <i class="fa-solid fa-calendar-plus"></i> Reservar lugar
-                                </button>
+                                @if (estaReservada)
+                                {
+                                    <form asp-action="CancelarReserva" method="post" style="margin:0;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="nombreClase" value="@c.Nombre" />
+                                        <input type="hidden" name="dia"         value="@c.Dia" />
+                                        <input type="hidden" name="hora"        value="@c.Hora" />
+                                        <button type="submit" class="btn-reservar-full btn-reservada">
+                                            <i class="fa-solid fa-circle-check"></i> Reservada · Cancelar
+                                        </button>
+                                    </form>
+                                }
+                                else if (cupoLibre > 0)
+                                {
+                                    <form asp-action="ReservarClase" method="post" style="margin:0;">
+                                        @Html.AntiForgeryToken()
+                                        <input type="hidden" name="nombreClase" value="@c.Nombre" />
+                                        <input type="hidden" name="dia"         value="@c.Dia" />
+                                        <input type="hidden" name="hora"        value="@c.Hora" />
+                                        <input type="hidden" name="instructor"  value="@c.Instructor" />
+                                        <button type="submit" class="btn-reservar-full">
+                                            <i class="fa-solid fa-calendar-plus"></i> Reservar lugar
+                                        </button>
+                                    </form>
+                                }
+                                else
+                                {
+                                    <button class="btn-reservar-full" disabled style="opacity:0.4;cursor:not-allowed;">
+                                        <i class="fa-solid fa-ban"></i> Sin cupo
+                                    </button>
+                                }
                             </div>
                         }
                     </div>
@@ -120,7 +149,8 @@ else
             {
                 var cupoLibre = c.CupoMax - c.CupoActual;
                 var cupoColor = cupoLibre > 5 ? "#22c55e" : cupoLibre > 2 ? "#eab308" : "#ef4444";
-                <div class="clase-card">
+                var estaReservada = Model.MisReservas.Contains($"{c.Nombre}|{c.Dia}|{c.Hora}");
+                <div class="clase-card @(estaReservada ? "clase-card-reservada" : "")">
                     <div class="clase-card-top">
                         <span class="badge-class @c.BadgeClass">@c.Nombre</span>
                         <span class="clase-nivel-badge nivel-@c.Nivel.ToLower().Replace("é","e")">@c.Nivel</span>
@@ -133,9 +163,37 @@ else
                             <i class="fa-solid fa-users"></i> @cupoLibre lugares libres
                         </span>
                     </div>
-                    <button class="btn-reservar-full" onclick="mostrarToast('¡Reserva registrada para @c.Nombre!', 'success')">
-                        <i class="fa-solid fa-calendar-plus"></i> Reservar lugar
-                    </button>
+                    @if (estaReservada)
+                    {
+                        <form asp-action="CancelarReserva" method="post" style="margin:0;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="nombreClase" value="@c.Nombre" />
+                            <input type="hidden" name="dia"         value="@c.Dia" />
+                            <input type="hidden" name="hora"        value="@c.Hora" />
+                            <button type="submit" class="btn-reservar-full btn-reservada">
+                                <i class="fa-solid fa-circle-check"></i> Reservada · Cancelar
+                            </button>
+                        </form>
+                    }
+                    else if (cupoLibre > 0)
+                    {
+                        <form asp-action="ReservarClase" method="post" style="margin:0;">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="nombreClase" value="@c.Nombre" />
+                            <input type="hidden" name="dia"         value="@c.Dia" />
+                            <input type="hidden" name="hora"        value="@c.Hora" />
+                            <input type="hidden" name="instructor"  value="@c.Instructor" />
+                            <button type="submit" class="btn-reservar-full">
+                                <i class="fa-solid fa-calendar-plus"></i> Reservar lugar
+                            </button>
+                        </form>
+                    }
+                    else
+                    {
+                        <button class="btn-reservar-full" disabled style="opacity:0.4;cursor:not-allowed;">
+                            <i class="fa-solid fa-ban"></i> Sin cupo
+                        </button>
+                    }
                 </div>
             }
         </div>

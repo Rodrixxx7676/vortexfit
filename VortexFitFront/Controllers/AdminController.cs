@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VortexFit.Data;
 using VortexFit.Models;
+using VortexFit.Controllers;
 
 namespace VortexFit.Controllers;
 
@@ -247,5 +248,120 @@ public class AdminController : Controller
 
         TempData["SuccessMessage"] = "Noticia restaurada y visible al público.";
         return RedirectToAction(nameof(Noticias));
+    }
+
+    // ════════════════════════════════════════════════
+    // RESERVAS — vista admin
+    // ════════════════════════════════════════════════
+    [HttpGet]
+    public async Task<IActionResult> Reservas(string? dia = null, string? clase = null)
+    {
+        if (RequireAdmin() is { } r) return r;
+
+        var query = _db.Reservas
+            .Include(r => r.Socio)
+            .Where(r => r.Estado == "Confirmada")
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(dia) && dia != "Todos")
+            query = query.Where(r => r.Dia == dia);
+
+        if (!string.IsNullOrEmpty(clase) && clase != "Todas")
+            query = query.Where(r => r.NombreClase == clase);
+
+        var reservas = await query
+            .OrderBy(r => r.Dia)
+            .ThenBy(r => r.Hora)
+            .ToListAsync();
+
+        // Conteo por clase para el header
+        var porClase = await _db.Reservas
+            .Where(r => r.Estado == "Confirmada")
+            .GroupBy(r => r.NombreClase)
+            .Select(g => new { Clase = g.Key, Total = g.Count() })
+            .ToListAsync();
+
+        ViewBag.Dia      = dia    ?? "Todos";
+        ViewBag.Clase    = clase  ?? "Todas";
+        ViewBag.PorClase = porClase;
+        ViewBag.Dias     = new[] { "Todos", "Lunes", "Martes", "Miércoles", "Jueves", "Viernes", "Sábado" };
+        ViewBag.Clases   = new[] { "Todas", "Spinning", "Yoga", "CrossFit", "Zumba", "Box" };
+
+        return View(reservas);
+    }
+
+    // ════════════════════════════════════════════════
+    // ESCÁNER QR
+    // ════════════════════════════════════════════════
+    [HttpGet]
+    public IActionResult EscanearQR()
+    {
+        if (RequireAdmin() is { } r) return r;
+        return View();
+    }
+
+    [HttpPost, ValidateAntiForgeryToken]
+    public async Task<IActionResult> MarcarAsistencia(string codigo, string? nombreClase = null)
+    {
+        if (RequireAdmin() is { } r) return r;
+
+        var socio = await _db.Socios
+            .FirstOrDefaultAsync(s => s.CodigoAcceso == codigo.Trim().ToUpper());
+
+        if (socio == null)
+        {
+            TempData["ErrorMessage"] = $"Código '{codigo}' no encontrado.";
+            return RedirectToAction(nameof(EscanearQR));
+        }
+
+        // Registrar asistencia
+        _db.Asistencias.Add(new Asistencia
+        {
+            IdSocio     = socio.IdSocio,
+            Fecha       = DateTime.UtcNow,
+            NombreClase = nombreClase,
+            Tipo        = "QR"
+        });
+
+        // Marcar reserva como asistida si existe
+        var reserva = await _db.Reservas.FirstOrDefaultAsync(r =>
+            r.IdSocio    == socio.IdSocio &&
+            r.Estado     == "Confirmada" &&
+            r.NombreClase == (nombreClase ?? r.NombreClase));
+
+        if (reserva != null)
+            reserva.Estado = "Asistio";
+
+        await _db.SaveChangesAsync();
+
+        TempData["SuccessMessage"] = $"Asistencia registrada para {socio.NombreCompleto}.";
+        ViewBag.UltimoSocio = socio;
+        return RedirectToAction(nameof(EscanearQR));
+    }
+
+    // ════════════════════════════════════════════════
+    // ASISTENCIAS — historial admin
+    // ════════════════════════════════════════════════
+    [HttpGet]
+    public async Task<IActionResult> Asistencias(string? buscar = null)
+    {
+        if (RequireAdmin() is { } r) return r;
+
+        var query = _db.Asistencias
+            .Include(a => a.Socio)
+            .AsQueryable();
+
+        if (!string.IsNullOrEmpty(buscar))
+            query = query.Where(a =>
+                a.Socio.NombreCompleto.ToLower().Contains(buscar.ToLower()) ||
+                a.Socio.Email.ToLower().Contains(buscar.ToLower()));
+
+        var lista = await query
+            .OrderByDescending(a => a.Fecha)
+            .Take(200)
+            .ToListAsync();
+
+        ViewBag.Buscar = buscar ?? string.Empty;
+        return View(lista);
     }
 }

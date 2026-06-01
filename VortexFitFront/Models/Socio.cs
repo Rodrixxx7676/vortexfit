@@ -50,4 +50,8 @@ public class Socio
     [MaxLength(10)]
     [Column("ROL")]
     public string Rol { get; set; } = "Usuario";   // Admin | Usuario
+
+    [MaxLength(20)]
+    [Column("CODIGO_ACCESO")]
+    public string CodigoAcceso { get; set; } = string.Empty;
 }

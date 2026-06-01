@@ -1,0 +1,111 @@
+@model List<VortexFit.Models.Reserva>
+@{
+    ViewData["Title"] = "Reservas — Admin Style Gym";
+    Layout = "_AdminLayout";
+    var dia   = ViewBag.Dia   as string ?? "Todos";
+    var clase = ViewBag.Clase as string ?? "Todas";
+    var porClase = ViewBag.PorClase as IEnumerable<dynamic> ?? Enumerable.Empty<dynamic>();
+}
+
+<div class="dash-header">
+    <div>
+        <p class="dash-saludo">Gestión</p>
+        <h1 class="dash-nombre">Reservas <span style="color:var(--gray);font-size:1rem;font-weight:400;">(@Model.Count confirmadas)</span></h1>
+    </div>
+    <a asp-action="EscanearQR" class="btn-primary">
+        <i class="fa-solid fa-qrcode"></i> Escanear QR
+    </a>
+</div>
+
+<!-- Filtros -->
+<div class="dash-card" style="margin-bottom:1.5rem;">
+    <form method="get" asp-action="Reservas" class="admin-filters">
+        <select name="dia" class="form-input form-select admin-filter-select">
+            @foreach (var d in ViewBag.Dias as string[] ?? Array.Empty<string>())
+            {
+                <option value="@d" selected="@(dia == d)">@d</option>
+            }
+        </select>
+        <select name="clase" class="form-input form-select admin-filter-select">
+            @foreach (var c in ViewBag.Clases as string[] ?? Array.Empty<string>())
+            {
+                <option value="@c" selected="@(clase == c)">@c</option>
+            }
+        </select>
+        <button type="submit" class="btn-primary">
+            <i class="fa-solid fa-filter"></i> Filtrar
+        </button>
+        @if (dia != "Todos" || clase != "Todas")
+        {
+            <a asp-action="Reservas" class="btn-outline">Limpiar</a>
+        }
+    </form>
+</div>
+
+<!-- Tabla -->
+<div class="dash-card">
+    @if (!Model.Any())
+    {
+        <div style="text-align:center; padding:3rem; color:var(--gray);">
+            <i class="fa-solid fa-calendar-xmark" style="font-size:2.5rem; opacity:0.2; display:block; margin-bottom:1rem;"></i>
+            No hay reservas con los filtros aplicados.
+        </div>
+    }
+    else
+    {
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Socio</th>
+                        <th>Clase</th>
+                        <th>Día</th>
+                        <th>Hora</th>
+                        <th>Instructor</th>
+                        <th>Reservado</th>
+                        <th>Estado</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var r in Model)
+                    {
+                        <tr>
+                            <td class="admin-td-id">@r.IdReserva</td>
+                            <td>
+                                <div class="admin-user-cell">
+                                    <div class="admin-user-avatar-sm">@r.Socio.NombreCompleto[0]</div>
+                                    <div>
+                                        <div>@r.Socio.NombreCompleto</div>
+                                        <div style="font-size:0.75rem;color:var(--gray);">@r.Socio.Email</div>
+                                    </div>
+                                </div>
+                            </td>
+                            <td><span class="badge-class badge-@r.NombreClase.ToLower()">@r.NombreClase</span></td>
+                            <td class="admin-td-gray">@r.Dia</td>
+                            <td class="admin-td-gray">@r.Hora</td>
+                            <td class="admin-td-gray">@r.Instructor</td>
+                            <td class="admin-td-gray">@r.FechaReserva.ToString("dd/MM/yyyy HH:mm")</td>
+                            <td>
+                                @if (r.Estado == "Confirmada")
+                                {
+                                    <span class="admin-estado-badge activo"><i class="fa-solid fa-circle" style="font-size:0.5rem;"></i> Confirmada</span>
+                                }
+                                else if (r.Estado == "Asistio")
+                                {
+                                    <span class="admin-estado-badge" style="background:rgba(167,139,250,0.12);color:#c4b5fd;border:1px solid rgba(167,139,250,0.25);">
+                                        <i class="fa-solid fa-circle-check" style="font-size:0.75rem;"></i> Asistió
+                                    </span>
+                                }
+                                else
+                                {
+                                    <span class="admin-estado-badge inactivo"><i class="fa-solid fa-circle" style="font-size:0.5rem;"></i> @r.Estado</span>
+                                }
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

@@ -120,7 +120,8 @@ public class AccountController : Controller
             Estado           = "Activo",
             Rol              = "Usuario",
             FechaRegistro    = DateTime.UtcNow,
-            FechaVencimiento = vencimiento
+            FechaVencimiento = vencimiento,
+            CodigoAcceso     = Guid.NewGuid().ToString("N")[..12].ToUpper()
         };
 
         _db.Socios.Add(socio);
