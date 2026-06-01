@@ -11,14 +11,22 @@ builder.Services.AddDbContext<VortexFitDbContext>(options =>
 builder.Services.AddDistributedMemoryCache();
 builder.Services.AddSession(options =>
 {
-    options.IdleTimeout        = TimeSpan.FromMinutes(30);
-    options.Cookie.HttpOnly    = true;
-    options.Cookie.IsEssential = true;
-    options.Cookie.Name        = ".StyleGym.Session";
+    options.IdleTimeout           = TimeSpan.FromMinutes(30);
+    options.Cookie.HttpOnly       = true;
+    options.Cookie.IsEssential    = true;
+    options.Cookie.Name           = ".StyleGym.Session";
+    options.Cookie.SameSite       = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
 });
 
 // ── MVC ──────────────────────────────────────────
 builder.Services.AddControllersWithViews();
+
+// ── Antiforgery: quitar X-Frame-Options + cookie Lax para VS Code preview ──
+builder.Services.AddAntiforgery(options =>
+{
+    options.SuppressXFrameOptionsHeader = true;
+    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+});
 
 var app = builder.Build();
 
