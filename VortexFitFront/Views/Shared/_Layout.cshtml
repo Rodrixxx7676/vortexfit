@@ -3,7 +3,7 @@
 <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <meta name="theme-color" content="#0A0A0A" />
+    <meta name="theme-color" content="#3DD9D9" />
 
     <!-- SEO -->
     <meta name="description"  content="Style Gym — Gimnasio moderno con clases grupales, entrenadores certificados y seguimiento de progreso. Únete hoy." />
@@ -11,19 +11,33 @@
     <meta name="author"       content="Style Gym" />
     <meta name="robots"       content="index, follow" />
 
-    <!-- Open Graph (compartir en redes) -->
+    <!-- Open Graph -->
     <meta property="og:title"       content="@ViewData["Title"]" />
     <meta property="og:description" content="Entrena con los mejores instructores. Muévete sin límites." />
     <meta property="og:type"        content="website" />
     <meta property="og:locale"      content="es_PE" />
+
+    <!-- ── PWA ── -->
+    <link rel="manifest" href="/manifest.json" />
+
+    <!-- iOS PWA support -->
+    <meta name="apple-mobile-web-app-capable"          content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title"            content="Style Gym" />
+    <link rel="apple-touch-icon" href="/images/icons/apple-touch-icon.png" />
+
+    <!-- Windows / Edge tiles -->
+    <meta name="msapplication-TileColor"  content="#3DD9D9" />
+    <meta name="msapplication-TileImage"  content="/images/icons/icon-192.png" />
 
     <title>@ViewData["Title"]</title>
 
     <link rel="stylesheet" href="~/css/vortex.css" asp-append-version="true" />
 
     <!-- Favicon -->
-    <link rel="icon" type="image/png" sizes="64x64" href="/images/favicon.png" />
-    <link rel="shortcut icon" type="image/png" href="/images/favicon.png" />
+    <link rel="icon" type="image/png" sizes="96x96"  href="/images/icons/icon-96.png" />
+    <link rel="icon" type="image/png" sizes="192x192" href="/images/icons/icon-192.png" />
+    <link rel="shortcut icon" type="image/png"        href="/images/favicon.png" />
 
     <!-- Font Awesome -->
     <script src="https://kit.fontawesome.com/dd3d90ac36.js" crossorigin="anonymous"></script>
@@ -39,6 +53,23 @@
     {
         <div id="toast-data" data-message="@TempData["ErrorMessage"]" data-type="error" style="display:none;"></div>
     }
+
+    <!-- ── Banner PWA "Instalar app" ── -->
+    <div id="pwa-banner" style="display:none;">
+        <div class="pwa-banner-inner">
+            <img src="/images/icons/icon-96.png" alt="Style Gym" />
+            <div class="pwa-banner-text">
+                <strong>Style Gym</strong>
+                <span>Instala la app en tu dispositivo</span>
+            </div>
+            <button id="pwa-install-btn" class="btn-primary" style="white-space:nowrap; padding:0.5rem 1rem; font-size:0.85rem;">
+                Instalar
+            </button>
+            <button id="pwa-dismiss-btn" aria-label="Cerrar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+    </div>
 
     <!-- ── Navbar ── -->
     <nav class="navbar-vortex">
@@ -64,7 +95,7 @@
                 </a>
                 <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
                     @Html.AntiForgeryToken()
-                    <button type="submit" class="btn-outline" style="border:none; cursor:pointer; border:1.5px solid var(--primary); border-radius:8px; padding:0.65rem 1.4rem; font-weight:600; font-size:0.9rem; color:var(--primary); background:transparent;">Salir</button>
+                    <button type="submit" class="btn-outline" style="cursor:pointer;">Salir</button>
                 </form>
             }
             else if (Context.Session.GetInt32("SocioId") != null)
@@ -91,10 +122,10 @@
     <!-- Menú móvil -->
     <div class="navbar-mobile-menu" id="mobileMenu">
         <div class="mobile-links-group">
-            <a href="/#servicios"  class="mobile-link">Servicios</a>
-            <a href="/#clases"     class="mobile-link">Clases</a>
-            <a href="/#sedes"      class="mobile-link">Sedes</a>
-            <a href="/#planes"     class="mobile-link">Planes</a>
+            <a href="/#servicios"   class="mobile-link">Servicios</a>
+            <a href="/#clases"      class="mobile-link">Clases</a>
+            <a href="/#sedes"       class="mobile-link">Sedes</a>
+            <a href="/#planes"      class="mobile-link">Planes</a>
             <a href="/#testimonios" class="mobile-link">Testimonios</a>
             <a asp-controller="Noticias" asp-action="Index" class="mobile-link">Noticias</a>
         </div>
@@ -115,8 +146,8 @@
         </div>
         <p>© 2026 Style Gym. Todos los derechos reservados.</p>
         <ul class="footer-links">
-            <li><a href="#servicios">Servicios</a></li>
-            <li><a href="#planes">Planes</a></li>
+            <li><a href="/#servicios">Servicios</a></li>
+            <li><a href="/#planes">Planes</a></li>
             <li><a href="#">Privacidad</a></li>
             <li><a href="#">Contacto</a></li>
         </ul>
@@ -128,6 +159,7 @@
     <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
     <script src="~/js/vortex.js" asp-append-version="true"></script>
     <script>
+        // ── Hamburger ──────────────────────────────
         const btn  = document.getElementById('hamburgerBtn');
         const menu = document.getElementById('mobileMenu');
         btn.addEventListener('click', () => {
@@ -138,6 +170,48 @@
             btn.classList.remove('open');
             menu.classList.remove('open');
         }));
+
+        // ── Service Worker ─────────────────────────
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/js/sw.js')
+                    .catch(err => console.warn('SW register failed:', err));
+            });
+        }
+
+        // ── PWA Install Banner ─────────────────────
+        let deferredPrompt = null;
+        const pwaBanner     = document.getElementById('pwa-banner');
+        const installBtn    = document.getElementById('pwa-install-btn');
+        const dismissBtn    = document.getElementById('pwa-dismiss-btn');
+
+        window.addEventListener('beforeinstallprompt', e => {
+            e.preventDefault();
+            deferredPrompt = e;
+            // No mostrar si el usuario ya lo descartó antes
+            if (sessionStorage.getItem('pwa-dismissed') !== '1') {
+                setTimeout(() => pwaBanner.style.display = 'block', 3000);
+            }
+        });
+
+        installBtn?.addEventListener('click', async () => {
+            if (!deferredPrompt) return;
+            deferredPrompt.prompt();
+            const { outcome } = await deferredPrompt.userChoice;
+            deferredPrompt = null;
+            pwaBanner.style.display = 'none';
+        });
+
+        dismissBtn?.addEventListener('click', () => {
+            pwaBanner.style.display = 'none';
+            sessionStorage.setItem('pwa-dismissed', '1');
+        });
+
+        // Ocultar banner si la app ya está instalada
+        window.addEventListener('appinstalled', () => {
+            pwaBanner.style.display = 'none';
+            deferredPrompt = null;
+        });
     </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>

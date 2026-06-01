@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#3DD9D9" />
+  <title>Sin conexión — Style Gym</title>
+  <link rel="icon" type="image/png" href="/images/favicon.png" />
+  <style>
+    :root {
+      --bg:      #0A0A0A;
+      --primary: #3DD9D9;
+      --gray:    #8A9BB0;
+      --white:   #FFFFFF;
+      --border:  rgba(61,217,217,0.2);
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background: var(--bg);
+      color: var(--white);
+      font-family: 'Segoe UI', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .glow {
+      position: fixed;
+      width: 500px; height: 500px;
+      border-radius: 50%;
+      background: radial-gradient(circle, rgba(61,217,217,0.1) 0%, transparent 70%);
+      top: 50%; left: 50%;
+      transform: translate(-50%,-50%);
+      pointer-events: none;
+    }
+
+    .icon-wrap {
+      width: 90px; height: 90px;
+      border-radius: 22px;
+      background: rgba(61,217,217,0.1);
+      border: 1.5px solid var(--border);
+      display: flex; align-items: center; justify-content: center;
+      margin: 0 auto 2rem;
+      font-size: 2.5rem;
+    }
+
+    h1 {
+      font-size: clamp(1.6rem, 5vw, 2.2rem);
+      font-weight: 800;
+      margin-bottom: 0.75rem;
+    }
+    h1 span { color: var(--primary); }
+
+    p {
+      color: var(--gray);
+      font-size: 1rem;
+      line-height: 1.7;
+      max-width: 380px;
+      margin: 0 auto 2rem;
+    }
+
+    .btn {
+      display: inline-block;
+      background: linear-gradient(135deg, #3DD9D9, #0BBABA);
+      color: #0A0A0A;
+      font-weight: 700;
+      font-size: 0.95rem;
+      padding: 0.8rem 2rem;
+      border-radius: 10px;
+      text-decoration: none;
+      border: none;
+      cursor: pointer;
+      box-shadow: 0 0 20px rgba(61,217,217,0.3);
+      transition: opacity 0.2s, transform 0.2s;
+    }
+    .btn:hover { opacity: 0.88; transform: translateY(-2px); }
+
+    .status {
+      margin-top: 2rem;
+      font-size: 0.82rem;
+      color: var(--gray);
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      justify-content: center;
+    }
+    .dot {
+      width: 8px; height: 8px;
+      border-radius: 50%;
+      background: #ef4444;
+      animation: pulse 1.5s ease-in-out infinite;
+    }
+    @keyframes pulse {
+      0%,100% { opacity: 1; }
+      50%      { opacity: 0.3; }
+    }
+    .dot.online { background: #22c55e; animation: none; }
+
+    .logo {
+      position: fixed;
+      top: 1.25rem; left: 50%;
+      transform: translateX(-50%);
+      display: flex; align-items: center; gap: 0.5rem;
+      font-weight: 700; font-size: 1.05rem; color: var(--white);
+      text-decoration: none;
+    }
+    .logo img { height: 28px; }
+  </style>
+</head>
+<body>
+
+  <div class="glow"></div>
+
+  <a href="/" class="logo">
+    <img src="/images/stylegym_t.png?v=4" alt="Style Gym" />
+    Style Gym
+  </a>
+
+  <div class="icon-wrap">📡</div>
+
+  <h1>Sin <span>conexión</span></h1>
+  <p>
+    Parece que no tienes internet en este momento.<br>
+    Revisa tu conexión y vuelve a intentarlo.
+  </p>
+
+  <button class="btn" onclick="location.reload()">Reintentar</button>
+
+  <div class="status">
+    <div class="dot" id="statusDot"></div>
+    <span id="statusText">Sin conexión</span>
+  </div>
+
+  <script>
+    function updateStatus() {
+      const dot  = document.getElementById('statusDot');
+      const text = document.getElementById('statusText');
+      if (navigator.onLine) {
+        dot.classList.add('online');
+        text.textContent = 'Conexión restaurada — recargando…';
+        setTimeout(() => location.reload(), 1200);
+      } else {
+        dot.classList.remove('online');
+        text.textContent = 'Sin conexión';
+      }
+    }
+    window.addEventListener('online',  updateStatus);
+    window.addEventListener('offline', updateStatus);
+    updateStatus();
+  </script>
+</body>
+</html>

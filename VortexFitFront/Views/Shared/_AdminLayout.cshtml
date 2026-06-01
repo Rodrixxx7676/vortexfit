@@ -118,6 +118,10 @@
             overlay.classList.remove('open');
         });
     </script>
+    <script>
+        if ('serviceWorker' in navigator)
+            navigator.serviceWorker.register('/js/sw.js').catch(() => {});
+    </script>
     @await RenderSectionAsync("Scripts", required: false)
 </body>
 </html>
