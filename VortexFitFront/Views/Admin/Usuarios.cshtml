@@ -1,0 +1,108 @@
+@model List<VortexFit.Models.Socio>
+@{
+    ViewData["Title"] = "Usuarios — Admin Style Gym";
+    Layout = "_AdminLayout";
+    var buscar = ViewBag.Buscar as string ?? "";
+    var plan   = ViewBag.Plan   as string ?? "Todos";
+    var estado = ViewBag.Estado as string ?? "Todos";
+}
+
+<div class="dash-header">
+    <div>
+        <p class="dash-saludo">Gestión</p>
+        <h1 class="dash-nombre">Usuarios <span style="color:var(--gray);font-size:1.1rem;font-weight:400;">(@Model.Count)</span></h1>
+    </div>
+</div>
+
+<!-- Filtros -->
+<div class="dash-card" style="margin-bottom:1.5rem;">
+    <form method="get" asp-action="Usuarios" class="admin-filters">
+        <div class="admin-filter-input">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" name="buscar" value="@buscar"
+                   placeholder="Buscar por nombre o email..." class="form-input" />
+        </div>
+        <select name="plan" class="form-input form-select admin-filter-select">
+            <option value="Todos" selected="@(plan=="Todos")">Todos los planes</option>
+            <option value="Basico" selected="@(plan=="Basico")">Básico</option>
+            <option value="Pro"    selected="@(plan=="Pro")">Pro</option>
+            <option value="Elite"  selected="@(plan=="Elite")">Elite</option>
+        </select>
+        <select name="estado" class="form-input form-select admin-filter-select">
+            <option value="Todos"  selected="@(estado=="Todos")">Todos los estados</option>
+            <option value="Activo" selected="@(estado=="Activo")">Activo</option>
+            <option value="Inactivo" selected="@(estado=="Inactivo")">Inactivo</option>
+            <option value="Suspendido" selected="@(estado=="Suspendido")">Suspendido</option>
+        </select>
+        <button type="submit" class="btn-primary" style="white-space:nowrap;">
+            <i class="fa-solid fa-filter"></i> Filtrar
+        </button>
+        @if (buscar != "" || plan != "Todos" || estado != "Todos")
+        {
+            <a asp-action="Usuarios" class="btn-outline">Limpiar</a>
+        }
+    </form>
+</div>
+
+<!-- Tabla de usuarios -->
+<div class="dash-card">
+    @if (!Model.Any())
+    {
+        <div style="text-align:center; padding:3rem; color:var(--gray);">
+            <i class="fa-solid fa-users" style="font-size:2.5rem; opacity:0.2; display:block; margin-bottom:1rem;"></i>
+            No se encontraron usuarios con los filtros aplicados.
+        </div>
+    }
+    else
+    {
+        <div class="admin-table-wrap">
+            <table class="admin-table">
+                <thead>
+                    <tr>
+                        <th>#</th>
+                        <th>Usuario</th>
+                        <th>Email</th>
+                        <th>Teléfono</th>
+                        <th>Plan</th>
+                        <th>Estado</th>
+                        <th>Registro</th>
+                        <th>Vencimiento</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var s in Model)
+                    {
+                        <tr>
+                            <td class="admin-td-id">@s.IdSocio</td>
+                            <td>
+                                <div class="admin-user-cell">
+                                    <div class="admin-user-avatar-sm">@s.NombreCompleto[0]</div>
+                                    <span>@s.NombreCompleto</span>
+                                </div>
+                            </td>
+                            <td class="admin-td-gray">@s.Email</td>
+                            <td class="admin-td-gray">@(s.Telefono ?? "—")</td>
+                            <td><span class="news-badge @s.Plan.ToLower()">@s.Plan</span></td>
+                            <td>
+                                @if (s.Estado == "Activo")
+                                {
+                                    <span class="admin-estado-badge activo"><i class="fa-solid fa-circle" style="font-size:0.5rem;"></i> Activo</span>
+                                }
+                                else
+                                {
+                                    <span class="admin-estado-badge inactivo"><i class="fa-solid fa-circle" style="font-size:0.5rem;"></i> @s.Estado</span>
+                                }
+                            </td>
+                            <td class="admin-td-gray">@s.FechaRegistro.ToString("dd/MM/yyyy")</td>
+                            <td class="admin-td-gray">
+                                @(s.FechaVencimiento.HasValue
+                                    ? s.FechaVencimiento.Value.ToString("dd/MM/yyyy")
+                                    : "—")
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    }
+</div>

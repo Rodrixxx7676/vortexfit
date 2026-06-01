@@ -37,6 +37,9 @@ public class VortexFitDbContext : DbContext
             entity.Property(s => s.Estado)
                   .HasDefaultValue("Activo");
 
+            entity.Property(s => s.Rol)
+                  .HasDefaultValue("Usuario");
+
             entity.Property(s => s.FechaRegistro)
                   .HasDefaultValueSql("SYSDATE");
         });

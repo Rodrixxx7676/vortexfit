@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0A0A0A" />
+    <meta name="robots" content="noindex, nofollow" />
+    <title>@ViewData["Title"]</title>
+    <link rel="stylesheet" href="~/css/vortex.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/dashboard.css" asp-append-version="true" />
+    <link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+
+    <!-- Favicon -->
+    <link rel="icon" type="image/png" sizes="64x64" href="/images/favicon.png" />
+    <link rel="shortcut icon" type="image/png" href="/images/favicon.png" />
+
+    <!-- Font Awesome -->
+    <script src="https://kit.fontawesome.com/dd3d90ac36.js" crossorigin="anonymous"></script>
+</head>
+<body class="dash-body">
+
+    <!-- ══ SIDEBAR ADMIN ══ -->
+    <aside class="sidebar admin-sidebar" id="sidebar">
+        <a href="/Admin" class="sidebar-logo">
+            <img src="/images/stylegym_t.png?v=4" alt="Style Gym" style="height:28px; vertical-align:middle; margin-right:8px;">
+            <span>Style Gym <span class="admin-label-tag">Admin</span></span>
+        </a>
+
+        <nav class="sidebar-nav">
+            <span class="sidebar-section-label">Panel</span>
+            <a asp-controller="Admin" asp-action="Index"
+               class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
+                <i class="fa-solid fa-chart-pie"></i> Resumen
+            </a>
+
+            <span class="sidebar-section-label">Gestión</span>
+            <a asp-controller="Admin" asp-action="Usuarios"
+               class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Usuarios" ? "active" : "")">
+                <i class="fa-solid fa-users"></i> Usuarios
+            </a>
+            <a asp-controller="Admin" asp-action="Noticias"
+               class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() is "Noticias" or "CrearNoticia" ? "active" : "")">
+                <i class="fa-solid fa-newspaper"></i> Noticias
+            </a>
+
+            <span class="sidebar-section-label">Sitio</span>
+            <a href="/" class="sidebar-link" target="_blank">
+                <i class="fa-solid fa-arrow-up-right-from-square"></i> Ver sitio público
+            </a>
+        </nav>
+
+        <div class="sidebar-footer">
+            <div class="sidebar-user">
+                <div class="sidebar-avatar admin-avatar">
+                    <i class="fa-solid fa-shield-halved"></i>
+                </div>
+                <div class="sidebar-user-info">
+                    <p class="sidebar-user-name">@Context.Session.GetString("SocioNombre")</p>
+                    <p class="sidebar-user-plan" style="color:var(--admin-accent);">Administrador</p>
+                </div>
+            </div>
+            <form asp-controller="Account" asp-action="Logout" method="post">
+                @Html.AntiForgeryToken()
+                <button type="submit" class="sidebar-logout">
+                    <i class="fa-solid fa-right-from-bracket"></i> Cerrar sesión
+                </button>
+            </form>
+        </div>
+    </aside>
+
+    <!-- ══ OVERLAY (mobile) ══ -->
+    <div class="sidebar-overlay" id="sidebarOverlay"></div>
+
+    <!-- Toast -->
+    @if (TempData["SuccessMessage"] != null)
+    {
+        <div id="toast-data" data-message="@TempData["SuccessMessage"]" data-type="success" style="display:none;"></div>
+    }
+    @if (TempData["ErrorMessage"] != null)
+    {
+        <div id="toast-data" data-message="@TempData["ErrorMessage"]" data-type="error" style="display:none;"></div>
+    }
+
+    <!-- ══ CONTENIDO ══ -->
+    <div class="dash-content">
+        <div class="dash-topbar">
+            <button class="dash-menu-btn" id="menuBtn" aria-label="Abrir menú">
+                <span></span><span></span><span></span>
+            </button>
+            <a href="/Admin" class="dash-topbar-logo">
+                <i class="fa-solid fa-shield-halved" style="color:var(--admin-accent);margin-right:6px;"></i>
+                Panel Admin
+            </a>
+            <div class="dash-topbar-user">
+                @Context.Session.GetString("SocioNombre")?.Split(' ')[0]
+            </div>
+        </div>
+
+        <main class="dash-main">
+            @RenderBody()
+        </main>
+    </div>
+
+    <script src="~/lib/jquery/dist/jquery.min.js"></script>
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+    <script src="~/js/vortex.js" asp-append-version="true"></script>
+    <script>
+        const menuBtn = document.getElementById('menuBtn');
+        const sidebar = document.getElementById('sidebar');
+        const overlay = document.getElementById('sidebarOverlay');
+        menuBtn.addEventListener('click', () => {
+            sidebar.classList.toggle('open');
+            overlay.classList.toggle('open');
+        });
+        overlay.addEventListener('click', () => {
+            sidebar.classList.remove('open');
+            overlay.classList.remove('open');
+        });
+    </script>
+    @await RenderSectionAsync("Scripts", required: false)
+</body>
+</html>

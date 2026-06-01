@@ -53,16 +53,22 @@ public class AccountController : Controller
         }
 
         // Guardar datos básicos en sesión
-        HttpContext.Session.SetInt32("SocioId",    socio.IdSocio);
+        HttpContext.Session.SetInt32("SocioId",      socio.IdSocio);
         HttpContext.Session.SetString("SocioNombre", socio.NombreCompleto);
         HttpContext.Session.SetString("SocioPlan",   socio.Plan);
+        HttpContext.Session.SetString("SocioRol",    socio.Rol);
 
-        TempData["SuccessMessage"] = $"¡Bienvenido de vuelta, {socio.NombreCompleto.Split(' ')[0]}!";
+        TempData["SuccessMessage"] = socio.Rol == "Admin"
+            ? $"¡Bienvenido, {socio.NombreCompleto.Split(' ')[0]}! Accediste como administrador."
+            : $"¡Bienvenido de vuelta, {socio.NombreCompleto.Split(' ')[0]}!";
 
         if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             return Redirect(returnUrl);
 
-        return RedirectToAction("Index", "Home");
+        // Redirigir según rol
+        return socio.Rol == "Admin"
+            ? RedirectToAction("Index", "Admin")
+            : RedirectToAction("Index", "Home");
     }
 
     // ──────────────────────────────────────────
@@ -112,6 +118,7 @@ public class AccountController : Controller
             Plan             = model.Plan,
             PasswordHash     = BCrypt.Net.BCrypt.HashPassword(model.Password),
             Estado           = "Activo",
+            Rol              = "Usuario",
             FechaRegistro    = DateTime.UtcNow,
             FechaVencimiento = vencimiento
         };

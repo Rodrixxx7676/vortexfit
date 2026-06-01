@@ -50,14 +50,24 @@
         <ul class="navbar-links">
             <li><a href="/#servicios">Servicios</a></li>
             <li><a href="/#clases">Clases</a></li>
+            <li><a href="/#sedes">Sedes</a></li>
             <li><a href="/#planes">Planes</a></li>
-            <li><a href="/#testimonios">Testimonios</a></li>
             <li><a asp-controller="Noticias" asp-action="Index">Noticias</a></li>
         </ul>
 
         <!-- Botones escritorio -->
         <div class="navbar-cta">
-            @if (Context.Session.GetInt32("SocioId") != null)
+            @if (Context.Session.GetString("SocioRol") == "Admin")
+            {
+                <a asp-controller="Admin" asp-action="Index" class="btn-primary">
+                    <i class="fa-solid fa-shield-halved"></i> Admin
+                </a>
+                <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
+                    @Html.AntiForgeryToken()
+                    <button type="submit" class="btn-outline" style="border:none; cursor:pointer; border:1.5px solid var(--primary); border-radius:8px; padding:0.65rem 1.4rem; font-weight:600; font-size:0.9rem; color:var(--primary); background:transparent;">Salir</button>
+                </form>
+            }
+            else if (Context.Session.GetInt32("SocioId") != null)
             {
                 <a asp-controller="Dashboard" asp-action="Index" class="btn-outline">Mi panel</a>
                 <form asp-controller="Account" asp-action="Logout" method="post" style="display:inline;">
@@ -83,6 +93,7 @@
         <div class="mobile-links-group">
             <a href="/#servicios"  class="mobile-link">Servicios</a>
             <a href="/#clases"     class="mobile-link">Clases</a>
+            <a href="/#sedes"      class="mobile-link">Sedes</a>
             <a href="/#planes"     class="mobile-link">Planes</a>
             <a href="/#testimonios" class="mobile-link">Testimonios</a>
             <a asp-controller="Noticias" asp-action="Index" class="mobile-link">Noticias</a>

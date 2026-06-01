@@ -1,0 +1,152 @@
+@model VortexFit.Models.AdminDashboardViewModel
+@{
+    ViewData["Title"] = "Panel Admin — Style Gym";
+    Layout = "_AdminLayout";
+}
+
+<!-- HEADER -->
+<div class="dash-header">
+    <div>
+        <p class="dash-saludo">Panel de administración</p>
+        <h1 class="dash-nombre">Resumen</h1>
+    </div>
+    <div class="dash-plan-badge" style="border-color:var(--admin-accent); color:var(--admin-accent);">
+        <i class="fa-solid fa-shield-halved"></i> Administrador
+    </div>
+</div>
+
+<!-- STATS -->
+<div class="dash-stats">
+    <div class="stat-card">
+        <div class="stat-icon"><i class="fa-solid fa-users"></i></div>
+        <div class="stat-body">
+            <span class="stat-value">@Model.TotalUsuarios</span>
+            <span class="stat-label">Total usuarios</span>
+        </div>
+        <p class="stat-sub">Cuentas registradas</p>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="color:#22c55e;"><i class="fa-solid fa-circle-check"></i></div>
+        <div class="stat-body">
+            <span class="stat-value" style="color:#22c55e;">@Model.UsuariosActivos</span>
+            <span class="stat-label">Usuarios activos</span>
+        </div>
+        <p class="stat-sub">@(Model.TotalUsuarios > 0 ? $"{100*Model.UsuariosActivos/Model.TotalUsuarios}% del total" : "—")</p>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="color:var(--admin-accent);"><i class="fa-solid fa-bolt"></i></div>
+        <div class="stat-body">
+            <span class="stat-value" style="color:var(--admin-accent);">@Model.PlanPro</span>
+            <span class="stat-label">Plan Pro</span>
+        </div>
+        <p class="stat-sub">@Model.PlanElite Pro Elite · @Model.PlanBasico Básico</p>
+    </div>
+    <div class="stat-card">
+        <div class="stat-icon" style="color:#f97316;"><i class="fa-solid fa-crown"></i></div>
+        <div class="stat-body">
+            <span class="stat-value" style="color:#f97316;">@Model.PlanElite</span>
+            <span class="stat-label">Plan Elite</span>
+        </div>
+        <p class="stat-sub">Membresía premium</p>
+    </div>
+</div>
+
+<!-- ACCIONES RÁPIDAS + ÚLTIMOS REGISTROS -->
+<div class="dash-grid">
+
+    <!-- Últimos registros -->
+    <div class="dash-col">
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h2><i class="fa-solid fa-user-plus"></i> Últimos registros</h2>
+                <a asp-controller="Admin" asp-action="Usuarios" class="form-link">Ver todos</a>
+            </div>
+            @if (!Model.UltimosRegistros.Any())
+            {
+                <p style="color:var(--gray); font-size:0.9rem; text-align:center; padding:1.5rem 0;">
+                    Aún no hay usuarios registrados.
+                </p>
+            }
+            else
+            {
+                <div class="admin-user-list">
+                    @foreach (var s in Model.UltimosRegistros)
+                    {
+                        <div class="admin-user-row">
+                            <div class="admin-user-avatar">@s.NombreCompleto[0]</div>
+                            <div class="admin-user-info">
+                                <span class="admin-user-name">@s.NombreCompleto</span>
+                                <span class="admin-user-email">@s.Email</span>
+                            </div>
+                            <div class="admin-user-meta">
+                                <span class="news-badge @s.Plan.ToLower()">@s.Plan</span>
+                                <span class="admin-user-date">@s.FechaRegistro.ToString("dd MMM")</span>
+                            </div>
+                        </div>
+                    }
+                </div>
+            }
+        </div>
+    </div>
+
+    <!-- Acciones rápidas -->
+    <div class="dash-col">
+        <div class="dash-card">
+            <div class="dash-card-header">
+                <h2><i class="fa-solid fa-bolt"></i> Acciones rápidas</h2>
+            </div>
+            <div class="acciones-grid">
+                <a asp-controller="Admin" asp-action="Usuarios" class="accion-btn">
+                    <i class="fa-solid fa-users"></i>
+                    <span>Ver usuarios</span>
+                </a>
+                <a asp-controller="Admin" asp-action="Noticias" class="accion-btn">
+                    <i class="fa-solid fa-newspaper"></i>
+                    <span>Noticias</span>
+                </a>
+                <a asp-controller="Admin" asp-action="CrearNoticia" class="accion-btn">
+                    <i class="fa-solid fa-plus"></i>
+                    <span>Nueva noticia</span>
+                </a>
+                <a href="/" target="_blank" class="accion-btn">
+                    <i class="fa-solid fa-eye"></i>
+                    <span>Ver sitio</span>
+                </a>
+            </div>
+        </div>
+
+        <!-- Distribución de planes -->
+        <div class="dash-card" style="margin-top:1.5rem;">
+            <div class="dash-card-header">
+                <h2><i class="fa-solid fa-chart-pie"></i> Distribución de planes</h2>
+            </div>
+            <div class="admin-plan-bars">
+                @{
+                    var total = Model.TotalUsuarios > 0 ? Model.TotalUsuarios : 1;
+                }
+                <div class="admin-plan-bar-row">
+                    <span class="admin-plan-bar-label">Básico</span>
+                    <div class="admin-plan-bar-track">
+                        <div class="admin-plan-bar-fill" style="width:@(100*Model.PlanBasico/total)%; background:#8A9BB0;"></div>
+                    </div>
+                    <span class="admin-plan-bar-count">@Model.PlanBasico</span>
+                </div>
+                <div class="admin-plan-bar-row">
+                    <span class="admin-plan-bar-label">Pro</span>
+                    <div class="admin-plan-bar-track">
+                        <div class="admin-plan-bar-fill" style="width:@(100*Model.PlanPro/total)%; background:var(--admin-accent);"></div>
+                    </div>
+                    <span class="admin-plan-bar-count">@Model.PlanPro</span>
+                </div>
+                <div class="admin-plan-bar-row">
+                    <span class="admin-plan-bar-label">Elite</span>
+                    <div class="admin-plan-bar-track">
+                        <div class="admin-plan-bar-fill" style="width:@(100*Model.PlanElite/total)%; background:#f97316;"></div>
+                    </div>
+                    <span class="admin-plan-bar-count">@Model.PlanElite</span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</div>

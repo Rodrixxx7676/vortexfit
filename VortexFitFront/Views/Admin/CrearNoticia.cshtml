@@ -1,0 +1,62 @@
+@model VortexFit.Models.Noticia
+@{
+    ViewData["Title"] = "Nueva noticia — Admin Style Gym";
+    Layout = "_AdminLayout";
+}
+
+<div class="dash-header">
+    <div>
+        <p class="dash-saludo">Gestión → Noticias</p>
+        <h1 class="dash-nombre">Nueva noticia</h1>
+    </div>
+    <a asp-action="Noticias" class="btn-outline">
+        <i class="fa-solid fa-arrow-left"></i> Volver
+    </a>
+</div>
+
+<div class="dash-card" style="max-width:760px;">
+    <form asp-action="CrearNoticia" method="post" novalidate>
+        @Html.AntiForgeryToken()
+
+        <div class="form-group">
+            <label asp-for="Titulo">Título</label>
+            <input asp-for="Titulo" class="form-input" placeholder="Título de la noticia" />
+            <span asp-validation-for="Titulo" class="form-error"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Categoria">Categoría</label>
+            <select asp-for="Categoria" class="form-input form-select">
+                <option value="Comunicado">Comunicado</option>
+                <option value="Novedad">Novedad</option>
+                <option value="Evento">Evento</option>
+            </select>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Resumen">Resumen</label>
+            <textarea asp-for="Resumen" class="form-input" rows="2"
+                      placeholder="Breve descripción (máx. 400 caracteres)"></textarea>
+            <span asp-validation-for="Resumen" class="form-error"></span>
+        </div>
+
+        <div class="form-group">
+            <label asp-for="Contenido">Contenido</label>
+            <textarea asp-for="Contenido" class="form-input" rows="10"
+                      placeholder="Escribe el contenido completo aquí...&#10;&#10;Puedes usar:&#10;- Listas con guión&#10;**Texto en negrita**"></textarea>
+            <span asp-validation-for="Contenido" class="form-error"></span>
+        </div>
+
+        <div class="perfil-actions">
+            <a asp-action="Noticias" class="btn-outline">Cancelar</a>
+            <button type="submit" class="btn-primary">
+                <i class="fa-solid fa-paper-plane"></i> Publicar noticia
+            </button>
+        </div>
+    </form>
+</div>
+
+@section Scripts {
+    <script src="~/lib/jquery-validation/dist/jquery.validate.min.js"></script>
+    <script src="~/lib/jquery-validation-unobtrusive/dist/jquery.validate.unobtrusive.min.js"></script>
+}

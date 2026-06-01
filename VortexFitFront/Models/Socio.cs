@@ -45,4 +45,9 @@ public class Socio
 
     [Column("FECHA_VENCIMIENTO")]
     public DateTime? FechaVencimiento { get; set; }
+
+    [Required]
+    [MaxLength(10)]
+    [Column("ROL")]
+    public string Rol { get; set; } = "Usuario";   // Admin | Usuario
 }
