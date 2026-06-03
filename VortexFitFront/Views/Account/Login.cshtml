@@ -105,8 +105,14 @@
             <a href="https://policies.google.com/terms"   target="_blank" rel="noopener">Términos</a>
         </p>
 
+        <button type="button" class="soporte-link btn-soporte">
+            <i class="fa-solid fa-headset"></i> ¿Necesitas ayuda? Soporte técnico
+        </button>
+
     </div>
 </div>
+
+@await Html.PartialAsync("_SoporteModal")
 
 @section Scripts {
     <script src="https://www.google.com/recaptcha/api.js?render=@ViewBag.RecaptchaSiteKey"></script>

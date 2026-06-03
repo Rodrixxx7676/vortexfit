@@ -164,3 +164,114 @@ document.addEventListener('DOMContentLoaded', () => {
         });
     });
 });
+
+/* ══════════════════════════════════════════
+   THEME MANAGER — Modo claro / oscuro
+══════════════════════════════════════════ */
+const ThemeManager = (() => {
+    const KEY = 'sg-theme';
+
+    function apply(theme) {
+        document.documentElement.setAttribute('data-theme', theme);
+        // Actualizar todos los iconos del toggle
+        document.querySelectorAll('.theme-icon').forEach(icon => {
+            icon.className = theme === 'light'
+                ? 'fa-solid fa-moon theme-icon'
+                : 'fa-solid fa-sun theme-icon';
+        });
+    }
+
+    function toggle() {
+        const current = document.documentElement.getAttribute('data-theme') || 'dark';
+        const next    = current === 'dark' ? 'light' : 'dark';
+        localStorage.setItem(KEY, next);
+        apply(next);
+    }
+
+    function init() {
+        const saved = localStorage.getItem(KEY) || 'dark';
+        apply(saved);
+        document.querySelectorAll('.btn-theme-toggle').forEach(btn => {
+            btn.addEventListener('click', toggle);
+        });
+    }
+
+    return { init, toggle };
+})();
+
+/* ══════════════════════════════════════════
+   SOPORTE MODAL
+══════════════════════════════════════════ */
+const SoporteModal = (() => {
+    function open() {
+        const m = document.getElementById('soporteModal');
+        if (m) { m.style.display = 'flex'; document.body.style.overflow = 'hidden'; }
+    }
+
+    function close() {
+        const m = document.getElementById('soporteModal');
+        if (m) { m.style.display = 'none'; document.body.style.overflow = ''; }
+        const form = document.getElementById('soporteFormBody');
+        const ok   = document.getElementById('soporteSuccess');
+        const btn  = document.getElementById('btnEnviarSoporte');
+        if (form) form.style.display = 'block';
+        if (ok)   ok.style.display   = 'none';
+        if (btn)  { btn.disabled = false; btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar mensaje'; }
+    }
+
+    async function enviar() {
+        const nombre  = document.getElementById('sp-nombre')?.value.trim();
+        const email   = document.getElementById('sp-email')?.value.trim();
+        const asunto  = document.getElementById('sp-asunto')?.value;
+        const mensaje = document.getElementById('sp-mensaje')?.value.trim();
+
+        if (!nombre || !email || !mensaje) {
+            mostrarToast('Completa nombre, correo y mensaje.', 'error');
+            return;
+        }
+        if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+            mostrarToast('Ingresa un correo válido.', 'error');
+            return;
+        }
+
+        const btn = document.getElementById('btnEnviarSoporte');
+        btn.disabled = true;
+        btn.innerHTML = '<i class="fa-solid fa-spinner fa-spin"></i> Enviando...';
+
+        try {
+            const res = await fetch('/Account/Soporte', {
+                method:  'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body:    JSON.stringify({ nombre, email, asunto, mensaje })
+            });
+            if (res.ok) {
+                document.getElementById('soporteFormBody').style.display = 'none';
+                document.getElementById('soporteSuccess').style.display  = 'block';
+            } else {
+                mostrarToast('Error al enviar. Intenta de nuevo.', 'error');
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar mensaje';
+            }
+        } catch {
+            mostrarToast('Sin conexión. Intenta más tarde.', 'error');
+            btn.disabled = false;
+            btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar mensaje';
+        }
+    }
+
+    function init() {
+        document.querySelectorAll('.btn-soporte').forEach(b => b.addEventListener('click', open));
+        document.getElementById('closeSoporte')?.addEventListener('click', close);
+        document.getElementById('soporteModal')?.addEventListener('click', e => {
+            if (e.target === e.currentTarget) close();
+        });
+        document.getElementById('btnEnviarSoporte')?.addEventListener('click', enviar);
+    }
+
+    return { init, open, close };
+})();
+
+document.addEventListener('DOMContentLoaded', () => {
+    ThemeManager.init();
+    SoporteModal.init();
+});

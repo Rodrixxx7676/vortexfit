@@ -131,6 +131,10 @@
             <a asp-action="Login" asp-controller="Account" class="form-link">Inicia sesión</a>
         </p>
 
+        <button type="button" class="soporte-link btn-soporte">
+            <i class="fa-solid fa-headset"></i> ¿Necesitas ayuda? Soporte técnico
+        </button>
+
         <p class="recaptcha-notice">
             Protegido por reCAPTCHA —
             <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacidad</a> y
@@ -139,6 +143,8 @@
 
     </div>
 </div>
+
+@await Html.PartialAsync("_SoporteModal")
 
 @section Scripts {
     <script src="https://www.google.com/recaptcha/api.js?render=@ViewBag.RecaptchaSiteKey"></script>

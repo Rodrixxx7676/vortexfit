@@ -41,6 +41,9 @@
 
     <!-- Font Awesome -->
     <script src="https://kit.fontawesome.com/dd3d90ac36.js" crossorigin="anonymous"></script>
+
+    <!-- Anti-flash: aplica el tema ANTES de pintar la página -->
+    <script>(function(){var t=localStorage.getItem('sg-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
 </head>
 <body>
 
@@ -85,6 +88,11 @@
             <li><a href="/#planes">Planes</a></li>
             <li><a asp-controller="Noticias" asp-action="Index">Noticias</a></li>
         </ul>
+
+        <!-- Toggle tema -->
+        <button class="btn-theme-toggle" aria-label="Cambiar tema" title="Cambiar tema">
+            <i class="fa-solid fa-sun theme-icon"></i>
+        </button>
 
         <!-- Botones escritorio -->
         <div class="navbar-cta">

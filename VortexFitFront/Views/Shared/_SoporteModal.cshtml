@@ -1,0 +1,63 @@
+<!-- ══ MODAL SOPORTE TÉCNICO ══════════════════════════════ -->
+<div id="soporteModal" class="modal-overlay" style="display:none;" role="dialog" aria-modal="true" aria-labelledby="soporteTitle">
+    <div class="modal-box">
+
+        <div class="modal-header">
+            <h3 id="soporteTitle">
+                <i class="fa-solid fa-headset"></i> Soporte técnico
+            </h3>
+            <button class="modal-close" id="closeSoporte" aria-label="Cerrar">
+                <i class="fa-solid fa-xmark"></i>
+            </button>
+        </div>
+
+        <!-- Formulario -->
+        <div id="soporteFormBody">
+            <div class="form-group">
+                <label class="form-label">Nombre <span style="color:#ef4444;">*</span></label>
+                <input type="text" id="sp-nombre" class="form-input" placeholder="Tu nombre completo" maxlength="80" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Correo electrónico <span style="color:#ef4444;">*</span></label>
+                <input type="email" id="sp-email" class="form-input" placeholder="tucorreo@ejemplo.com" maxlength="100" />
+            </div>
+            <div class="form-group">
+                <label class="form-label">Asunto</label>
+                <select id="sp-asunto" class="form-input form-select">
+                    <option value="Consulta general">— Selecciona un asunto —</option>
+                    <option value="Problema con mi cuenta">Problema con mi cuenta</option>
+                    <option value="Error técnico en la plataforma">Error técnico en la plataforma</option>
+                    <option value="Consulta sobre mi membresía">Consulta sobre mi membresía</option>
+                    <option value="Problema con reservas o QR">Problema con reservas o QR</option>
+                    <option value="Otro">Otro</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label class="form-label">Mensaje <span style="color:#ef4444;">*</span></label>
+                <textarea id="sp-mensaje" class="form-input" rows="4"
+                          placeholder="Describe tu problema o consulta con el mayor detalle posible..."
+                          maxlength="1000"
+                          style="resize:vertical; min-height:100px;"></textarea>
+            </div>
+            <button type="button" class="btn-primary btn-full" id="btnEnviarSoporte">
+                <i class="fa-solid fa-paper-plane"></i> Enviar mensaje
+            </button>
+            <p style="font-size:0.75rem; color:var(--gray); text-align:center; margin-top:0.75rem;">
+                Te responderemos en menos de 24 horas hábiles.
+            </p>
+        </div>
+
+        <!-- Estado de éxito -->
+        <div id="soporteSuccess" style="display:none; text-align:center; padding:2rem 0;">
+            <i class="fa-solid fa-circle-check modal-success-icon"></i>
+            <h3 style="margin-bottom:0.5rem; color:var(--white);">¡Mensaje enviado!</h3>
+            <p style="color:var(--gray); font-size:0.9rem; margin-bottom:1.5rem;">
+                Recibimos tu consulta. Te responderemos en menos de 24 horas.
+            </p>
+            <button type="button" class="btn-outline btn-full" onclick="SoporteModal.close()">
+                Cerrar
+            </button>
+        </div>
+
+    </div>
+</div>

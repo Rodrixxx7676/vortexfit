@@ -191,6 +191,25 @@ public class AccountController : Controller
     }
 
     // ──────────────────────────────────────────
+    // SOPORTE TÉCNICO — recibe mensaje del form
+    // ──────────────────────────────────────────
+
+    [HttpPost]
+    public IActionResult Soporte([FromBody] SoporteDto dto)
+    {
+        if (string.IsNullOrWhiteSpace(dto.Nombre)  ||
+            string.IsNullOrWhiteSpace(dto.Email)   ||
+            string.IsNullOrWhiteSpace(dto.Mensaje))
+            return BadRequest(new { ok = false, error = "Campos incompletos." });
+
+        // En producción aquí se enviaría un email o se guardaría en BD.
+        // Para el portfolio, se registra en el log del servidor.
+        Console.WriteLine($"[SOPORTE] {DateTime.UtcNow:u} | {dto.Email} | {dto.Asunto} | {dto.Mensaje[..Math.Min(80, dto.Mensaje.Length)]}");
+
+        return Ok(new { ok = true });
+    }
+
+    // ──────────────────────────────────────────
     // LOGOUT
     // ──────────────────────────────────────────
 
@@ -202,3 +221,6 @@ public class AccountController : Controller
         return RedirectToAction("Index", "Home");
     }
 }
+
+// ── DTOs ──────────────────────────────────────────────────────
+public record SoporteDto(string Nombre, string Email, string Asunto, string Mensaje);
