@@ -8,13 +8,15 @@ namespace VortexFit.Controllers;
 
 public class AccountController : Controller
 {
-    private readonly VortexFitDbContext _db;
-    private readonly RecaptchaService   _recaptcha;
+    private readonly VortexFitDbContext  _db;
+    private readonly RecaptchaService    _recaptcha;
+    private readonly LoginAttemptTracker _attempts;
 
-    public AccountController(VortexFitDbContext db, RecaptchaService recaptcha)
+    public AccountController(VortexFitDbContext db, RecaptchaService recaptcha, LoginAttemptTracker attempts)
     {
-        _db        = db;
+        _db       = db;
         _recaptcha = recaptcha;
+        _attempts  = attempts;
     }
 
     // ──────────────────────────────────────────
@@ -24,8 +26,8 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
     {
-        ViewData["ReturnUrl"]     = returnUrl;
-        ViewBag.RecaptchaSiteKey  = _recaptcha.SiteKey;
+        ViewData["ReturnUrl"]    = returnUrl;
+        ViewBag.RecaptchaSiteKey = _recaptcha.SiteKey;
         return View();
     }
 
@@ -37,6 +39,22 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> Login(LoginViewModel model, string? returnUrl = null)
     {
+        ViewBag.RecaptchaSiteKey = _recaptcha.SiteKey;
+
+        // ── Verificar bloqueo por intentos fallidos ────────
+        var (blocked, remaining, permanent) = _attempts.CheckBlock(model.Email);
+        if (blocked)
+        {
+            var secs = (int)(remaining?.TotalSeconds ?? 0);
+            ViewBag.LockSeconds = secs;
+            ViewBag.Permanent   = permanent;
+            ModelState.AddModelError(string.Empty,
+                permanent
+                    ? "Cuenta bloqueada por demasiados intentos fallidos. Contacta al soporte."
+                    : $"Demasiados intentos fallidos. Espera {secs} segundo{(secs != 1 ? "s" : "")}.");
+            return View(model);
+        }
+
         if (!ModelState.IsValid)
             return View(model);
 
@@ -48,13 +66,30 @@ public class AccountController : Controller
             return View(model);
         }
 
-        // Buscar socio por email
+        // ── Buscar socio ──────────────────────────────────
         var socio = await _db.Socios
             .FirstOrDefaultAsync(s => s.Email.ToLower() == model.Email.ToLower());
 
         if (socio == null || !BCrypt.Net.BCrypt.Verify(model.Password, socio.PasswordHash))
         {
-            ModelState.AddModelError(string.Empty, "Correo o contraseña incorrectos.");
+            var (nowBlocked, lockFor) = _attempts.RecordFailure(model.Email);
+            var attempts = _attempts.GetAttempts(model.Email);
+
+            if (nowBlocked && lockFor.HasValue)
+            {
+                var secs = (int)lockFor.Value.TotalSeconds;
+                ViewBag.LockSeconds = secs;
+                ModelState.AddModelError(string.Empty,
+                    $"Correo o contraseña incorrectos. Cuenta bloqueada por {secs} segundo{(secs != 1 ? "s" : "")} ({attempts} intentos fallidos).");
+            }
+            else
+            {
+                var left = 5 - (attempts % 5);
+                ModelState.AddModelError(string.Empty,
+                    attempts < 5
+                        ? $"Correo o contraseña incorrectos. ({left} intento{(left != 1 ? "s" : "")} antes de penalización)"
+                        : "Correo o contraseña incorrectos.");
+            }
             return View(model);
         }
 
@@ -63,6 +98,9 @@ public class AccountController : Controller
             ModelState.AddModelError(string.Empty, "Tu cuenta está suspendida. Contacta al gimnasio.");
             return View(model);
         }
+
+        // ── Login exitoso: limpiar intentos fallidos ──────
+        _attempts.RecordSuccess(model.Email);
 
         // Guardar datos básicos en sesión
         HttpContext.Session.SetInt32("SocioId",      socio.IdSocio);

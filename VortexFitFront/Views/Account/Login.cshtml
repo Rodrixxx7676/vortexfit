@@ -21,11 +21,28 @@
             </div>
         }
 
-        <!-- Errores globales -->
-        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0)
+        <!-- Bloqueo por intentos -->
+        @if (ViewBag.Permanent == true)
         {
             <div class="auth-alert auth-alert-error">
-                <i class="fa-solid fa-triangle-exclamation"></i> Revisa los campos marcados en rojo.
+                <i class="fa-solid fa-ban"></i> <strong>Cuenta bloqueada.</strong>
+                Demasiados intentos fallidos. Contacta al soporte del gimnasio.
+            </div>
+        }
+        else if (ViewBag.LockSeconds != null)
+        {
+            <div class="auth-alert auth-alert-error" id="lockAlert">
+                <i class="fa-solid fa-lock"></i>
+                Demasiados intentos. Podrás intentarlo de nuevo en
+                <strong id="lockCountdown">@ViewBag.LockSeconds</strong> segundo@(ViewBag.LockSeconds != 1 ? "s" : "").
+            </div>
+        }
+
+        <!-- Errores globales -->
+        @if (!ViewData.ModelState.IsValid && ViewData.ModelState.ErrorCount > 0 && ViewBag.LockSeconds == null && ViewBag.Permanent != true)
+        {
+            <div class="auth-alert auth-alert-error">
+                <i class="fa-solid fa-triangle-exclamation"></i> @Html.ValidationSummary(true, "", new { @class = "mb-0" })
             </div>
         }
 
@@ -103,6 +120,27 @@
                 input.type = 'password';
                 btn.innerHTML = '<i class="fa-regular fa-eye"></i>';
             }
+        }
+
+        // Contador regresivo de bloqueo
+        const lockEl = document.getElementById('lockCountdown');
+        if (lockEl) {
+            const submitBtn = document.querySelector('#loginForm button[type=submit]');
+            if (submitBtn) submitBtn.disabled = true;
+
+            let secs = parseInt(lockEl.textContent, 10);
+            const tick = setInterval(() => {
+                secs--;
+                if (secs <= 0) {
+                    clearInterval(tick);
+                    document.getElementById('lockAlert').innerHTML =
+                        '<i class="fa-solid fa-unlock"></i> Ya puedes intentarlo de nuevo.';
+                    document.getElementById('lockAlert').className = 'auth-alert auth-alert-success';
+                    if (submitBtn) submitBtn.disabled = false;
+                } else {
+                    lockEl.textContent = secs;
+                }
+            }, 1000);
         }
 
         // reCAPTCHA v3 — intercepta el submit, obtiene el token y luego envía

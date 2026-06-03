@@ -39,6 +39,10 @@ builder.Services.AddHostedService<PushNotificationService>();
 builder.Services.AddHttpClient("recaptcha");
 builder.Services.AddScoped<RecaptchaService>();
 
+// ── Protección brute force ─────────────────────────────────
+builder.Services.AddMemoryCache();
+builder.Services.AddSingleton<LoginAttemptTracker>();
+
 var app = builder.Build();
 
 // ══════════════════════════════════════════════════════════
