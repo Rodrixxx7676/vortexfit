@@ -85,6 +85,11 @@
     <!-- ══ OVERLAY (mobile) ══ -->
     <div class="sidebar-overlay" id="sidebarOverlay"></div>
 
+    <!-- Formulario oculto para cierre de sesión por inactividad -->
+    <form id="inactivityLogoutForm" asp-controller="Account" asp-action="Logout" method="post" style="display:none;">
+        @Html.AntiForgeryToken()
+    </form>
+
     <!-- Toast -->
     @if (TempData["SuccessMessage"] != null)
     {

@@ -226,8 +226,10 @@ namespace VortexFit.Migrations
                     b.Property<string>("CodigoAcceso")
                         .IsRequired()
                         .IsRequired()
+                        .ValueGeneratedOnAdd()
                         .HasMaxLength(20)
                         .HasColumnType("NVARCHAR2(20)")
+                        .HasDefaultValue("")
                         .HasColumnName("CODIGO_ACCESO");
 
                     b.Property<string>("Email")

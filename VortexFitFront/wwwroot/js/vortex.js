@@ -109,28 +109,40 @@ document.addEventListener('DOMContentLoaded', () => {
 (function () {
     if (!document.body.classList.contains('dash-body')) return;
 
-    const SESSION_MINUTES = 30;
-    const WARN_BEFORE_MIN = 3;
-    const warnAt  = (SESSION_MINUTES - WARN_BEFORE_MIN) * 60 * 1000;
+    const SESSION_MINUTES = 15;
+    const WARN_BEFORE_MIN = 2;   // aviso a los 13 min
+    const warnAt   = (SESSION_MINUTES - WARN_BEFORE_MIN) * 60 * 1000;
     const logoutAt = SESSION_MINUTES * 60 * 1000;
 
     let warnTimer, logoutTimer;
+
+    function doLogout() {
+        Toast.error('Sesión cerrada por inactividad. Redirigiendo…', 3000);
+        // Intentar submit del form de logout para limpiar la sesión en el servidor
+        setTimeout(() => {
+            const form = document.getElementById('inactivityLogoutForm')
+                      || document.querySelector('form[action*="Logout"]');
+            if (form) { form.submit(); }
+            else      { window.location.href = '/Account/Login'; }
+        }, 2500);
+    }
 
     function resetTimers() {
         clearTimeout(warnTimer);
         clearTimeout(logoutTimer);
 
         warnTimer = setTimeout(() => {
-            Toast.warning(`Tu sesión expira en ${WARN_BEFORE_MIN} minutos. Guarda tus cambios.`, 10000);
+            Toast.warning(
+                `Tu sesión cerrará en ${WARN_BEFORE_MIN} minutos por inactividad. ` +
+                `Mueve el ratón o presiona una tecla para continuar.`,
+                12000
+            );
         }, warnAt);
 
-        logoutTimer = setTimeout(() => {
-            Toast.error('Sesión expirada. Redirigiendo al login…', 3000);
-            setTimeout(() => { window.location.href = '/Account/Login'; }, 3000);
-        }, logoutAt);
+        logoutTimer = setTimeout(doLogout, logoutAt);
     }
 
-    ['click', 'keydown', 'mousemove', 'scroll'].forEach(ev =>
+    ['click', 'keydown', 'mousemove', 'scroll', 'touchstart'].forEach(ev =>
         document.addEventListener(ev, resetTimers, { passive: true })
     );
 
@@ -226,11 +238,11 @@ const SoporteModal = (() => {
         const mensaje = document.getElementById('sp-mensaje')?.value.trim();
 
         if (!nombre || !email || !mensaje) {
-            mostrarToast('Completa nombre, correo y mensaje.', 'error');
+            Toast.error('Completa nombre, correo y mensaje.');
             return;
         }
         if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
-            mostrarToast('Ingresa un correo válido.', 'error');
+            Toast.error('Ingresa un correo válido.');
             return;
         }
 
@@ -248,12 +260,12 @@ const SoporteModal = (() => {
                 document.getElementById('soporteFormBody').style.display = 'none';
                 document.getElementById('soporteSuccess').style.display  = 'block';
             } else {
-                mostrarToast('Error al enviar. Intenta de nuevo.', 'error');
+                Toast.error('Error al enviar. Intenta de nuevo.');
                 btn.disabled = false;
                 btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar mensaje';
             }
         } catch {
-            mostrarToast('Sin conexión. Intenta más tarde.', 'error');
+            Toast.error('Sin conexión. Intenta más tarde.');
             btn.disabled = false;
             btn.innerHTML = '<i class="fa-solid fa-paper-plane"></i> Enviar mensaje';
         }

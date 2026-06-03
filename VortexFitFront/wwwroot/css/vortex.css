@@ -1885,3 +1885,35 @@ body,
   from { transform: translateY(18px); opacity: 0; }
   to   { transform: translateY(0);    opacity: 1; }
 }
+
+/* ── Secciones con fondo hardcodeado → override en modo claro ── */
+[data-theme="light"] .cta-section {
+  background: linear-gradient(160deg, #e0f7f7, #f0f6ff);
+  border-top-color:    rgba(61, 217, 217, 0.3);
+  border-bottom-color: rgba(61, 217, 217, 0.3);
+}
+[data-theme="light"] .plan-card.featured {
+  background: linear-gradient(160deg, #e0f7f7, #f5fffe);
+}
+[data-theme="light"] .form-select option {
+  background: #ffffff;
+  color: #0f172a;
+}
+/* Secciones de la landing con fondos implícitamente oscuros */
+[data-theme="light"] section,
+[data-theme="light"] .services-section,
+[data-theme="light"] .plans-section,
+[data-theme="light"] .testimonials-section,
+[data-theme="light"] .sedes-section,
+[data-theme="light"] .noticias-section {
+  background: transparent;
+}
+[data-theme="light"] .service-card,
+[data-theme="light"] .plan-card,
+[data-theme="light"] .testimonial-card,
+[data-theme="light"] .noticia-card {
+  background: #ffffff;
+  box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+}
+[data-theme="light"] .plan-card { border-color: rgba(61,217,217,0.25); }
+[data-theme="light"] .service-card-icon { background: rgba(61,217,217,0.12); }

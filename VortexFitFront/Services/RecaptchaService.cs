@@ -43,7 +43,9 @@ public class RecaptchaService
         }
         catch
         {
-            return new RecaptchaResult();
+            // Si no se puede contactar a Google (red, timeout, etc.) → fail-open
+            // para no bloquear usuarios legítimos por problemas de conectividad.
+            return new RecaptchaResult { Success = true, Score = 0.9, Action = expectedAction };
         }
 
         if (!resp.IsSuccessStatusCode)
