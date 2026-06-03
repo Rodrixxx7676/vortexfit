@@ -2,16 +2,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VortexFit.Data;
 using VortexFit.Models;
+using VortexFit.Services;
 
 namespace VortexFit.Controllers;
 
 public class AccountController : Controller
 {
     private readonly VortexFitDbContext _db;
+    private readonly RecaptchaService   _recaptcha;
 
-    public AccountController(VortexFitDbContext db)
+    public AccountController(VortexFitDbContext db, RecaptchaService recaptcha)
     {
-        _db = db;
+        _db        = db;
+        _recaptcha = recaptcha;
     }
 
     // ──────────────────────────────────────────
@@ -21,7 +24,8 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
     {
-        ViewData["ReturnUrl"] = returnUrl;
+        ViewData["ReturnUrl"]     = returnUrl;
+        ViewBag.RecaptchaSiteKey  = _recaptcha.SiteKey;
         return View();
     }
 
@@ -35,6 +39,14 @@ public class AccountController : Controller
     {
         if (!ModelState.IsValid)
             return View(model);
+
+        // ── reCAPTCHA v3 ──────────────────────────────────
+        var captcha = await _recaptcha.VerifyAsync(model.RecaptchaToken, "login");
+        if (!captcha.Success)
+        {
+            ModelState.AddModelError(string.Empty, "Verificación de seguridad fallida. Intenta de nuevo.");
+            return View(model);
+        }
 
         // Buscar socio por email
         var socio = await _db.Socios
@@ -78,6 +90,7 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Register(string? plan = null)
     {
+        ViewBag.RecaptchaSiteKey = _recaptcha.SiteKey;
         var model = new RegisterViewModel
         {
             Plan = plan ?? string.Empty
@@ -95,6 +108,14 @@ public class AccountController : Controller
     {
         if (!ModelState.IsValid)
             return View(model);
+
+        // ── reCAPTCHA v3 ──────────────────────────────────
+        var captcha = await _recaptcha.VerifyAsync(model.RecaptchaToken, "register");
+        if (!captcha.Success)
+        {
+            ModelState.AddModelError(string.Empty, "Verificación de seguridad fallida. Intenta de nuevo.");
+            return View(model);
+        }
 
         // Verificar que el email no esté registrado
         bool emailExiste = await _db.Socios

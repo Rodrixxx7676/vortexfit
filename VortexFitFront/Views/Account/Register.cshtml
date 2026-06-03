@@ -21,7 +21,8 @@
             </div>
         }
 
-        <form asp-action="Register" asp-controller="Account" method="post" novalidate>
+        <form asp-action="Register" asp-controller="Account" method="post" novalidate id="registerForm">
+            <input type="hidden" asp-for="RecaptchaToken" id="recaptchaTokenReg" />
             @Html.AntiForgeryToken()
 
             <!-- Nombre completo -->
@@ -130,10 +131,17 @@
             <a asp-action="Login" asp-controller="Account" class="form-link">Inicia sesión</a>
         </p>
 
+        <p class="recaptcha-notice">
+            Protegido por reCAPTCHA —
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacidad</a> y
+            <a href="https://policies.google.com/terms"   target="_blank" rel="noopener">Términos</a>
+        </p>
+
     </div>
 </div>
 
 @section Scripts {
+    <script src="https://www.google.com/recaptcha/api.js?render=@ViewBag.RecaptchaSiteKey"></script>
     <script>
         // Toggle visibilidad contraseña
         function togglePassword(inputId, btn) {
@@ -141,6 +149,19 @@
             input.type = input.type === 'password' ? 'text' : 'password';
             btn.innerHTML = input.type === 'password' ? '<i class="fa-regular fa-eye"></i>' : '<i class="fa-regular fa-eye-slash"></i>';
         }
+
+        // reCAPTCHA v3 — intercepta el submit, obtiene el token y luego envía
+        const registerForm = document.getElementById('registerForm');
+        registerForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            grecaptcha.ready(function () {
+                grecaptcha.execute('@ViewBag.RecaptchaSiteKey', { action: 'register' })
+                    .then(function (token) {
+                        document.getElementById('recaptchaTokenReg').value = token;
+                        registerForm.submit();
+                    });
+            });
+        });
 
         // Indicador de fortaleza de contraseña
         const pwInput   = document.getElementById('passwordInput');

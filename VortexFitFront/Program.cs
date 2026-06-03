@@ -3,6 +3,7 @@ using VortexFit.Data;
 using VortexFit.Models;
 using VortexFit.Services;
 using WebPush;
+using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -33,6 +34,10 @@ builder.Services.AddAntiforgery(options =>
 
 // ── Notificaciones push (servicio de fondo) ───────────────
 builder.Services.AddHostedService<PushNotificationService>();
+
+// ── reCAPTCHA v3 ──────────────────────────────────────────
+builder.Services.AddHttpClient("recaptcha");
+builder.Services.AddScoped<RecaptchaService>();
 
 var app = builder.Build();
 

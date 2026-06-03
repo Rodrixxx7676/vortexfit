@@ -944,6 +944,20 @@ section { padding: 4.5rem 1.5rem; }
   margin-top: 1.5rem;
 }
 
+/* reCAPTCHA branding notice (requerido por ToS de Google) */
+.recaptcha-notice {
+  text-align: center;
+  font-size: 0.72rem;
+  color: var(--gray);
+  opacity: 0.6;
+  margin-top: 1rem;
+  line-height: 1.5;
+}
+.recaptcha-notice a {
+  color: var(--gray);
+  text-decoration: underline;
+}
+
 /* Indicador fortaleza de contraseña */
 .password-strength-wrap {
   display: flex;

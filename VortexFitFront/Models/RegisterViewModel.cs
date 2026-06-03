@@ -39,4 +39,7 @@ public class RegisterViewModel
     [Range(typeof(bool), "true", "true", ErrorMessage = "Debes aceptar los términos y condiciones.")]
     [Display(Name = "Acepto los términos y condiciones")]
     public bool AcceptTerms { get; set; }
+
+    // Token invisible de reCAPTCHA v3 — se llena por JS antes del submit
+    public string RecaptchaToken { get; set; } = string.Empty;
 }

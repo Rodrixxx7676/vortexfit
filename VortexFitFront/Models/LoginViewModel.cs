@@ -16,4 +16,7 @@ public class LoginViewModel
 
     [Display(Name = "Recordarme")]
     public bool RememberMe { get; set; }
+
+    // Token invisible de reCAPTCHA v3 — se llena por JS antes del submit
+    public string RecaptchaToken { get; set; } = string.Empty;
 }

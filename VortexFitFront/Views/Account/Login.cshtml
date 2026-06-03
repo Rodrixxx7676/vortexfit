@@ -29,8 +29,9 @@
             </div>
         }
 
-        <form asp-action="Login" asp-controller="Account" method="post" novalidate>
+        <form asp-action="Login" asp-controller="Account" method="post" novalidate id="loginForm">
             <input type="hidden" asp-for="@ViewData["ReturnUrl"]" name="returnUrl" />
+            <input type="hidden" asp-for="RecaptchaToken" id="recaptchaToken" />
             @Html.AntiForgeryToken()
 
             <!-- Correo -->
@@ -81,10 +82,17 @@
             <a asp-action="Register" asp-controller="Account" class="form-link">Regístrate gratis</a>
         </p>
 
+        <p class="recaptcha-notice">
+            Protegido por reCAPTCHA —
+            <a href="https://policies.google.com/privacy" target="_blank" rel="noopener">Privacidad</a> y
+            <a href="https://policies.google.com/terms"   target="_blank" rel="noopener">Términos</a>
+        </p>
+
     </div>
 </div>
 
 @section Scripts {
+    <script src="https://www.google.com/recaptcha/api.js?render=@ViewBag.RecaptchaSiteKey"></script>
     <script>
         function togglePassword(inputId, btn) {
             const input = document.getElementById(inputId);
@@ -96,5 +104,18 @@
                 btn.innerHTML = '<i class="fa-regular fa-eye"></i>';
             }
         }
+
+        // reCAPTCHA v3 — intercepta el submit, obtiene el token y luego envía
+        const loginForm = document.getElementById('loginForm');
+        loginForm.addEventListener('submit', function (e) {
+            e.preventDefault();
+            grecaptcha.ready(function () {
+                grecaptcha.execute('@ViewBag.RecaptchaSiteKey', { action: 'login' })
+                    .then(function (token) {
+                        document.getElementById('recaptchaToken').value = token;
+                        loginForm.submit();
+                    });
+            });
+        });
     </script>
 }
