@@ -1,27 +1,17 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using VortexFit.Data;
+using VortexFit.Filters;
 using VortexFit.Models;
-using VortexFit.Controllers;
 
 namespace VortexFit.Controllers;
 
+[RequireAdmin]   // ← protege TODAS las acciones de este controlador
 public class AdminController : Controller
 {
     private readonly VortexFitDbContext _db;
 
-    public AdminController(VortexFitDbContext db)
-    {
-        _db = db;
-    }
-
-    // ── Guard ─────────────────────────────────────────────
-    private IActionResult? RequireAdmin()
-    {
-        if (HttpContext.Session.GetString("SocioRol") != "Admin")
-            return RedirectToAction("Login", "Account");
-        return null;
-    }
+    public AdminController(VortexFitDbContext db) => _db = db;
 
     // ════════════════════════════════════════════════
     // PANEL PRINCIPAL
@@ -29,8 +19,6 @@ public class AdminController : Controller
     [HttpGet]
     public async Task<IActionResult> Index()
     {
-        if (RequireAdmin() is { } r) return r;
-
         var usuarios = await _db.Socios
             .Where(s => s.Rol == "Usuario")
             .ToListAsync();
@@ -59,8 +47,6 @@ public class AdminController : Controller
                                                string? plan   = null,
                                                string? estado = null)
     {
-        if (RequireAdmin() is { } r) return r;
-
         var query = _db.Socios
             .Where(s => s.Rol == "Usuario")
             .AsQueryable();
@@ -93,12 +79,10 @@ public class AdminController : Controller
     [HttpGet]
     public async Task<IActionResult> EditarUsuario(int id)
     {
-        if (RequireAdmin() is { } r) return r;
-
         var socio = await _db.Socios.FindAsync(id);
         if (socio == null || socio.Rol == "Admin") return NotFound();
 
-        var vm = new EditarUsuarioViewModel
+        return View(new EditarUsuarioViewModel
         {
             IdSocio          = socio.IdSocio,
             NombreCompleto   = socio.NombreCompleto,
@@ -107,17 +91,13 @@ public class AdminController : Controller
             Estado           = socio.Estado,
             Telefono         = socio.Telefono,
             FechaVencimiento = socio.FechaVencimiento
-        };
-
-        return View(vm);
+        });
     }
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditarUsuario(EditarUsuarioViewModel vm)
     {
-        if (RequireAdmin() is { } r) return r;
-
         if (!ModelState.IsValid)
             return View(vm);
 
@@ -140,8 +120,6 @@ public class AdminController : Controller
     [HttpGet]
     public async Task<IActionResult> Noticias()
     {
-        if (RequireAdmin() is { } r) return r;
-
         var noticias = await _db.Noticias
             .OrderByDescending(n => n.FechaPublicacion)
             .ToListAsync();
@@ -153,18 +131,12 @@ public class AdminController : Controller
     // NOTICIAS — crear
     // ════════════════════════════════════════════════
     [HttpGet]
-    public IActionResult CrearNoticia()
-    {
-        if (RequireAdmin() is { } r) return r;
-        return View(new Noticia());
-    }
+    public IActionResult CrearNoticia() => View(new Noticia());
 
     [HttpPost]
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> CrearNoticia(Noticia model)
     {
-        if (RequireAdmin() is { } r) return r;
-
         if (!ModelState.IsValid)
             return View(model);
 
@@ -183,11 +155,8 @@ public class AdminController : Controller
     [HttpGet]
     public async Task<IActionResult> EditarNoticia(int id)
     {
-        if (RequireAdmin() is { } r) return r;
-
         var noticia = await _db.Noticias.FindAsync(id);
         if (noticia == null) return NotFound();
-
         return View(noticia);
     }
 
@@ -195,8 +164,6 @@ public class AdminController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EditarNoticia(Noticia model)
     {
-        if (RequireAdmin() is { } r) return r;
-
         if (!ModelState.IsValid)
             return View(model);
 
@@ -220,8 +187,6 @@ public class AdminController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> EliminarNoticia(int id)
     {
-        if (RequireAdmin() is { } r) return r;
-
         var noticia = await _db.Noticias.FindAsync(id);
         if (noticia != null)
         {
@@ -237,8 +202,6 @@ public class AdminController : Controller
     [ValidateAntiForgeryToken]
     public async Task<IActionResult> RestaurarNoticia(int id)
     {
-        if (RequireAdmin() is { } r) return r;
-
         var noticia = await _db.Noticias.FindAsync(id);
         if (noticia != null)
         {
@@ -256,8 +219,6 @@ public class AdminController : Controller
     [HttpGet]
     public async Task<IActionResult> Reservas(string? dia = null, string? clase = null)
     {
-        if (RequireAdmin() is { } r) return r;
-
         var query = _db.Reservas
             .Include(r => r.Socio)
             .Where(r => r.Estado == "Confirmada")
@@ -274,7 +235,6 @@ public class AdminController : Controller
             .ThenBy(r => r.Hora)
             .ToListAsync();
 
-        // Conteo por clase para el header
         var porClase = await _db.Reservas
             .Where(r => r.Estado == "Confirmada")
             .GroupBy(r => r.NombreClase)
@@ -294,19 +254,21 @@ public class AdminController : Controller
     // ESCÁNER QR
     // ════════════════════════════════════════════════
     [HttpGet]
-    public IActionResult EscanearQR()
-    {
-        if (RequireAdmin() is { } r) return r;
-        return View();
-    }
+    public IActionResult EscanearQR() => View();
 
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> MarcarAsistencia(string codigo, string? nombreClase = null)
     {
-        if (RequireAdmin() is { } r) return r;
+        // Sanear entrada
+        codigo = (codigo ?? string.Empty).Trim().ToUpper();
+        if (string.IsNullOrEmpty(codigo) || codigo.Length > 20)
+        {
+            TempData["ErrorMessage"] = "Código no válido.";
+            return RedirectToAction(nameof(EscanearQR));
+        }
 
         var socio = await _db.Socios
-            .FirstOrDefaultAsync(s => s.CodigoAcceso == codigo.Trim().ToUpper());
+            .FirstOrDefaultAsync(s => s.CodigoAcceso == codigo);
 
         if (socio == null)
         {
@@ -314,7 +276,6 @@ public class AdminController : Controller
             return RedirectToAction(nameof(EscanearQR));
         }
 
-        // Registrar asistencia
         _db.Asistencias.Add(new Asistencia
         {
             IdSocio     = socio.IdSocio,
@@ -323,10 +284,9 @@ public class AdminController : Controller
             Tipo        = "QR"
         });
 
-        // Marcar reserva como asistida si existe
         var reserva = await _db.Reservas.FirstOrDefaultAsync(r =>
-            r.IdSocio    == socio.IdSocio &&
-            r.Estado     == "Confirmada" &&
+            r.IdSocio     == socio.IdSocio &&
+            r.Estado      == "Confirmada" &&
             r.NombreClase == (nombreClase ?? r.NombreClase));
 
         if (reserva != null)
@@ -345,8 +305,6 @@ public class AdminController : Controller
     [HttpGet]
     public async Task<IActionResult> Asistencias(string? buscar = null)
     {
-        if (RequireAdmin() is { } r) return r;
-
         var query = _db.Asistencias
             .Include(a => a.Socio)
             .AsQueryable();

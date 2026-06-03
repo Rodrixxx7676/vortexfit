@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
 using VortexFit.Data;
 using VortexFit.Models;
@@ -8,15 +9,21 @@ namespace VortexFit.Controllers;
 
 public class AccountController : Controller
 {
-    private readonly VortexFitDbContext  _db;
-    private readonly RecaptchaService    _recaptcha;
-    private readonly LoginAttemptTracker _attempts;
+    private readonly VortexFitDbContext   _db;
+    private readonly RecaptchaService     _recaptcha;
+    private readonly LoginAttemptTracker  _attempts;
+    private readonly ILogger<AccountController> _logger;
 
-    public AccountController(VortexFitDbContext db, RecaptchaService recaptcha, LoginAttemptTracker attempts)
+    public AccountController(
+        VortexFitDbContext db,
+        RecaptchaService recaptcha,
+        LoginAttemptTracker attempts,
+        ILogger<AccountController> logger)
     {
-        _db       = db;
+        _db        = db;
         _recaptcha = recaptcha;
         _attempts  = attempts;
+        _logger    = logger;
     }
 
     // ──────────────────────────────────────────
@@ -26,6 +33,14 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Login(string? returnUrl = null)
     {
+        // Redirigir si ya hay sesión activa
+        if (HttpContext.Session.GetInt32("SocioId") != null)
+        {
+            return HttpContext.Session.GetString("SocioRol") == "Admin"
+                ? RedirectToAction("Index", "Admin")
+                : RedirectToAction("Index", "Dashboard");
+        }
+
         ViewData["ReturnUrl"]    = returnUrl;
         ViewBag.RecaptchaSiteKey = _recaptcha.SiteKey;
         return View();
@@ -52,6 +67,9 @@ public class AccountController : Controller
                 permanent
                     ? "Cuenta bloqueada por demasiados intentos fallidos. Contacta al soporte."
                     : $"Demasiados intentos fallidos. Espera {secs} segundo{(secs != 1 ? "s" : "")}.");
+
+            _logger.LogWarning("[SECURITY] Login bloqueado para {Email} — {Type}",
+                model.Email, permanent ? "permanente" : $"{secs}s");
             return View(model);
         }
 
@@ -62,6 +80,7 @@ public class AccountController : Controller
         var captcha = await _recaptcha.VerifyAsync(model.RecaptchaToken, "login");
         if (!captcha.Success)
         {
+            _logger.LogWarning("[SECURITY] reCAPTCHA fallido en login para {Email}", model.Email);
             ModelState.AddModelError(string.Empty, "Verificación de seguridad fallida. Intenta de nuevo.");
             return View(model);
         }
@@ -74,6 +93,11 @@ public class AccountController : Controller
         {
             var (nowBlocked, lockFor) = _attempts.RecordFailure(model.Email);
             var attempts = _attempts.GetAttempts(model.Email);
+
+            _logger.LogWarning("[SECURITY] Intento fallido #{Count} para {Email} desde {IP}",
+                attempts,
+                model.Email,
+                HttpContext.Connection.RemoteIpAddress);
 
             if (nowBlocked && lockFor.HasValue)
             {
@@ -95,14 +119,19 @@ public class AccountController : Controller
 
         if (socio.Estado != "Activo")
         {
+            _logger.LogWarning("[SECURITY] Intento de login en cuenta suspendida: {Email}", model.Email);
             ModelState.AddModelError(string.Empty, "Tu cuenta está suspendida. Contacta al gimnasio.");
             return View(model);
         }
 
-        // ── Login exitoso: limpiar intentos fallidos ──────
+        // ── Login exitoso ─────────────────────────────────
         _attempts.RecordSuccess(model.Email);
+        _logger.LogInformation("[SECURITY] Login exitoso: {Email} | Rol: {Rol} | IP: {IP}",
+            socio.Email, socio.Rol, HttpContext.Connection.RemoteIpAddress);
 
-        // Guardar datos básicos en sesión
+        // Prevención de session fixation: limpiar sesión anterior antes de fijar nuevos valores
+        HttpContext.Session.Clear();
+
         HttpContext.Session.SetInt32("SocioId",      socio.IdSocio);
         HttpContext.Session.SetString("SocioNombre", socio.NombreCompleto);
         HttpContext.Session.SetString("SocioPlan",   socio.Plan);
@@ -115,7 +144,6 @@ public class AccountController : Controller
         if (!string.IsNullOrEmpty(returnUrl) && Url.IsLocalUrl(returnUrl))
             return Redirect(returnUrl);
 
-        // Redirigir según rol
         return socio.Rol == "Admin"
             ? RedirectToAction("Index", "Admin")
             : RedirectToAction("Index", "Home");
@@ -128,22 +156,25 @@ public class AccountController : Controller
     [HttpGet]
     public IActionResult Register(string? plan = null)
     {
+        // Redirigir si ya hay sesión activa
+        if (HttpContext.Session.GetInt32("SocioId") != null)
+            return RedirectToAction("Index", "Dashboard");
+
         ViewBag.RecaptchaSiteKey = _recaptcha.SiteKey;
-        var model = new RegisterViewModel
-        {
-            Plan = plan ?? string.Empty
-        };
-        return View(model);
+        return View(new RegisterViewModel { Plan = plan ?? string.Empty });
     }
 
     // ──────────────────────────────────────────
-    // REGISTRO — POST
+    // REGISTRO — POST (rate limited por IP)
     // ──────────────────────────────────────────
 
     [HttpPost]
     [ValidateAntiForgeryToken]
+    [EnableRateLimiting("register")]
     public async Task<IActionResult> Register(RegisterViewModel model)
     {
+        ViewBag.RecaptchaSiteKey = _recaptcha.SiteKey;
+
         if (!ModelState.IsValid)
             return View(model);
 
@@ -161,14 +192,12 @@ public class AccountController : Controller
 
         if (emailExiste)
         {
-            ModelState.AddModelError("Email", "Este correo ya está registrado.");
+            // Mensaje genérico para no confirmar si el email existe (enumeración de cuentas)
+            ModelState.AddModelError("Email", "No se pudo completar el registro. Verifica los datos ingresados.");
+            _logger.LogWarning("[SECURITY] Intento de registro con email ya existente: {Email}", model.Email);
             return View(model);
         }
 
-        // Calcular fecha de vencimiento según el plan (1 mes)
-        var vencimiento = DateTime.UtcNow.AddMonths(1);
-
-        // Crear el socio con contraseña hasheada
         var socio = new Socio
         {
             NombreCompleto   = model.FullName.Trim(),
@@ -179,32 +208,45 @@ public class AccountController : Controller
             Estado           = "Activo",
             Rol              = "Usuario",
             FechaRegistro    = DateTime.UtcNow,
-            FechaVencimiento = vencimiento,
+            FechaVencimiento = DateTime.UtcNow.AddMonths(1),
             CodigoAcceso     = Guid.NewGuid().ToString("N")[..12].ToUpper()
         };
 
         _db.Socios.Add(socio);
         await _db.SaveChangesAsync();
 
+        _logger.LogInformation("[SECURITY] Nuevo registro: {Email} | Plan: {Plan}", socio.Email, socio.Plan);
         TempData["SuccessMessage"] = $"¡Registro exitoso! Bienvenido a Style Gym, {socio.NombreCompleto.Split(' ')[0]}. Ya puedes iniciar sesión.";
         return RedirectToAction(nameof(Login));
     }
 
     // ──────────────────────────────────────────
-    // SOPORTE TÉCNICO — recibe mensaje del form
+    // SOPORTE TÉCNICO (rate limited por IP)
     // ──────────────────────────────────────────
 
     [HttpPost]
+    [EnableRateLimiting("soporte")]
     public IActionResult Soporte([FromBody] SoporteDto dto)
     {
+        // Validar campos obligatorios y tamaños
         if (string.IsNullOrWhiteSpace(dto.Nombre)  ||
             string.IsNullOrWhiteSpace(dto.Email)   ||
             string.IsNullOrWhiteSpace(dto.Mensaje))
             return BadRequest(new { ok = false, error = "Campos incompletos." });
 
-        // En producción aquí se enviaría un email o se guardaría en BD.
-        // Para el portfolio, se registra en el log del servidor.
-        Console.WriteLine($"[SOPORTE] {DateTime.UtcNow:u} | {dto.Email} | {dto.Asunto} | {dto.Mensaje[..Math.Min(80, dto.Mensaje.Length)]}");
+        if (dto.Nombre.Length  > 100) return BadRequest(new { ok = false, error = "Nombre demasiado largo." });
+        if (dto.Email.Length   > 200) return BadRequest(new { ok = false, error = "Email demasiado largo." });
+        if (dto.Mensaje.Length > 1000) return BadRequest(new { ok = false, error = "Mensaje demasiado largo (máx. 1000 caracteres)." });
+
+        // Validación básica de formato de email
+        if (!dto.Email.Contains('@') || !dto.Email.Contains('.'))
+            return BadRequest(new { ok = false, error = "Correo no válido." });
+
+        _logger.LogInformation("[SOPORTE] {Timestamp:u} | {Email} | Asunto: {Asunto} | {Preview}",
+            DateTime.UtcNow,
+            dto.Email,
+            dto.Asunto ?? "(sin asunto)",
+            dto.Mensaje[..Math.Min(80, dto.Mensaje.Length)]);
 
         return Ok(new { ok = true });
     }
@@ -217,10 +259,12 @@ public class AccountController : Controller
     [ValidateAntiForgeryToken]
     public IActionResult Logout()
     {
+        var email = HttpContext.Session.GetString("SocioNombre") ?? "(desconocido)";
+        _logger.LogInformation("[SECURITY] Logout: {Usuario}", email);
         HttpContext.Session.Clear();
         return RedirectToAction("Index", "Home");
     }
 }
 
 // ── DTOs ──────────────────────────────────────────────────────
-public record SoporteDto(string Nombre, string Email, string Asunto, string Mensaje);
+public record SoporteDto(string Nombre, string Email, string? Asunto, string Mensaje);

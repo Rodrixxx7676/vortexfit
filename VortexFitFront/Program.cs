@@ -1,11 +1,16 @@
+using Microsoft.AspNetCore.RateLimiting;
 using Microsoft.EntityFrameworkCore;
+using System.Threading.RateLimiting;
 using VortexFit.Data;
+using VortexFit.Middleware;
 using VortexFit.Models;
 using VortexFit.Services;
 using WebPush;
-using Microsoft.Extensions.DependencyInjection;
 
 var builder = WebApplication.CreateBuilder(args);
+
+// ── Kestrel: ocultar cabecera "Server" ────────────────────
+builder.WebHost.ConfigureKestrel(k => k.AddServerHeader = false);
 
 // ── Oracle DbContext ───────────────────────────────────────
 builder.Services.AddDbContext<VortexFitDbContext>(options =>
@@ -19,7 +24,9 @@ builder.Services.AddSession(options =>
     options.Cookie.HttpOnly    = true;
     options.Cookie.IsEssential = true;
     options.Cookie.Name        = ".StyleGym.Session";
-    options.Cookie.SameSite    = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+    options.Cookie.SameSite    = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
+    // Secure: Always en producción; SameAsRequest acepta HTTP en dev y HTTPS en prod
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
 });
 
 // ── MVC ───────────────────────────────────────────────────
@@ -28,8 +35,10 @@ builder.Services.AddControllersWithViews();
 // ── Antiforgery ───────────────────────────────────────────
 builder.Services.AddAntiforgery(options =>
 {
-    options.SuppressXFrameOptionsHeader = true;
-    options.Cookie.SameSite = Microsoft.AspNetCore.Http.SameSiteMode.Lax;
+    options.SuppressXFrameOptionsHeader = true; // lo manejamos en SecurityHeadersMiddleware
+    options.Cookie.SameSite    = Microsoft.AspNetCore.Http.SameSiteMode.Strict;
+    options.Cookie.SecurePolicy = CookieSecurePolicy.SameAsRequest;
+    options.Cookie.HttpOnly    = true;
 });
 
 // ── Notificaciones push (servicio de fondo) ───────────────
@@ -42,6 +51,45 @@ builder.Services.AddScoped<RecaptchaService>();
 // ── Protección brute force ─────────────────────────────────
 builder.Services.AddMemoryCache();
 builder.Services.AddSingleton<LoginAttemptTracker>();
+
+// ── Rate Limiting ─────────────────────────────────────────
+// Limita solicitudes por IP para evitar abuso de endpoints sensibles.
+builder.Services.AddRateLimiter(opt =>
+{
+    // Registro: máx. 5 cuentas por hora por IP
+    opt.AddPolicy("register", ctx =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit          = 5,
+                Window               = TimeSpan.FromHours(1),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit           = 0
+            }));
+
+    // Soporte: máx. 3 mensajes cada 15 minutos por IP
+    opt.AddPolicy("soporte", ctx =>
+        RateLimitPartition.GetFixedWindowLimiter(
+            partitionKey: ctx.Connection.RemoteIpAddress?.ToString() ?? "unknown",
+            factory: _ => new FixedWindowRateLimiterOptions
+            {
+                PermitLimit          = 3,
+                Window               = TimeSpan.FromMinutes(15),
+                QueueProcessingOrder = QueueProcessingOrder.OldestFirst,
+                QueueLimit           = 0
+            }));
+
+    // Respuesta 429 cuando se supera el límite
+    opt.RejectionStatusCode = StatusCodes.Status429TooManyRequests;
+    opt.OnRejected = async (ctx, token) =>
+    {
+        ctx.HttpContext.Response.ContentType = "application/json";
+        await ctx.HttpContext.Response.WriteAsync(
+            "{\"error\":\"Demasiadas solicitudes. Intenta de nuevo más tarde.\"}",
+            cancellationToken: token);
+    };
+});
 
 var app = builder.Build();
 
@@ -97,13 +145,16 @@ var app = builder.Build();
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Home/Error");
-    app.UseHsts();
+    app.UseHsts(); // Strict-Transport-Security (30 días por defecto)
 }
 
+// ── Pipeline de seguridad ──────────────────────────────────
+app.UseMiddleware<SecurityHeadersMiddleware>(); // cabeceras de seguridad
 app.UseStatusCodePagesWithReExecute("/Home/NotFound");
 app.UseHttpsRedirection();
 app.UseStaticFiles();
 app.UseRouting();
+app.UseRateLimiter();   // rate limiting antes de sesión y actions
 app.UseSession();
 app.UseAuthorization();
 

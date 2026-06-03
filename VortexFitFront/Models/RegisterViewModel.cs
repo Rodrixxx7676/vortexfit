@@ -26,6 +26,9 @@ public class RegisterViewModel
 
     [Required(ErrorMessage = "La contraseña es obligatoria.")]
     [StringLength(100, MinimumLength = 8, ErrorMessage = "Mínimo 8 caracteres.")]
+    [RegularExpression(
+        @"^(?=.*[A-Z])(?=.*\d)(?=.*[^A-Za-z0-9]).{8,}$",
+        ErrorMessage = "Debe tener al menos 1 mayúscula, 1 número y 1 carácter especial (ej. !@#$).")]
     [DataType(DataType.Password)]
     [Display(Name = "Contraseña")]
     public string Password { get; set; } = string.Empty;

@@ -2,23 +2,19 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using QRCoder;
 using VortexFit.Data;
+using VortexFit.Filters;
 using VortexFit.Models;
 
 namespace VortexFit.Controllers;
 
+[RequireLogin]   // ← protege TODAS las acciones de este controlador
 public class DashboardController : Controller
 {
     private readonly VortexFitDbContext _db;
 
     public DashboardController(VortexFitDbContext db) => _db = db;
 
-    private IActionResult? RequireLogin()
-    {
-        if (HttpContext.Session.GetInt32("SocioId") is null)
-            return RedirectToAction("Login", "Account", new { returnUrl = Request.Path });
-        return null;
-    }
-
+    /// <summary>ID del socio autenticado (garantizado por [RequireLogin]).</summary>
     private int SocioId => HttpContext.Session.GetInt32("SocioId")!.Value;
 
     // ════════════════════════════════════════════════
@@ -26,8 +22,6 @@ public class DashboardController : Controller
     // ════════════════════════════════════════════════
     public async Task<IActionResult> Index()
     {
-        if (RequireLogin() is { } r) return r;
-
         var socio = await _db.Socios.FindAsync(SocioId);
         if (socio == null) return RedirectToAction("Logout", "Account");
 
@@ -35,7 +29,6 @@ public class DashboardController : Controller
             ? Math.Max(0, (socio.FechaVencimiento.Value - DateTime.UtcNow).Days)
             : 0;
 
-        // Reservas próximas (primeras 3)
         var proximasClases = GetHorarioSemanal()
             .Select(h => new ClaseProxima
             {
@@ -75,7 +68,6 @@ public class DashboardController : Controller
     [HttpGet]
     public async Task<IActionResult> Perfil()
     {
-        if (RequireLogin() is { } r) return r;
         var socio = await _db.Socios.FindAsync(SocioId);
         if (socio == null) return RedirectToAction("Logout", "Account");
 
@@ -93,7 +85,6 @@ public class DashboardController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> Perfil(PerfilViewModel vm)
     {
-        if (RequireLogin() is { } r) return r;
         var socio = await _db.Socios.FindAsync(SocioId);
         if (socio == null) return RedirectToAction("Logout", "Account");
 
@@ -128,16 +119,14 @@ public class DashboardController : Controller
     [HttpGet]
     public async Task<IActionResult> Clases(string? dia = null)
     {
-        if (RequireLogin() is { } r) return r;
         var socio = await _db.Socios.FindAsync(SocioId);
         if (socio == null) return RedirectToAction("Logout", "Account");
 
-        var horario = GetHorarioSemanal();
+        var horario  = GetHorarioSemanal();
         var filtrado = (string.IsNullOrEmpty(dia) || dia == "Todos")
             ? horario
             : horario.Where(c => c.Dia == dia).ToList();
 
-        // Cargar reservas activas del socio
         var reservas = await _db.Reservas
             .Where(r => r.IdSocio == SocioId && r.Estado == "Confirmada")
             .Select(r => new { r.NombreClase, r.Dia, r.Hora, r.IdReserva })
@@ -145,9 +134,9 @@ public class DashboardController : Controller
 
         var vm = new ClasesViewModel
         {
-            Socio     = socio,
-            Horario   = filtrado.OrderBy(c => c.DiaOrden).ThenBy(c => c.Hora).ToList(),
-            DiaFiltro = dia ?? "Todos",
+            Socio       = socio,
+            Horario     = filtrado.OrderBy(c => c.DiaOrden).ThenBy(c => c.Hora).ToList(),
+            DiaFiltro   = dia ?? "Todos",
             MisReservas = reservas.Select(r => $"{r.NombreClase}|{r.Dia}|{r.Hora}").ToHashSet()
         };
 
@@ -157,11 +146,8 @@ public class DashboardController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> ReservarClase(string nombreClase, string dia, string hora, string instructor)
     {
-        if (RequireLogin() is { } r) return r;
-
-        // Verificar si ya tiene reserva
         bool yaReservado = await _db.Reservas.AnyAsync(r =>
-            r.IdSocio    == SocioId &&
+            r.IdSocio     == SocioId &&
             r.NombreClase == nombreClase &&
             r.Dia         == dia &&
             r.Hora        == hora &&
@@ -193,8 +179,6 @@ public class DashboardController : Controller
     [HttpPost, ValidateAntiForgeryToken]
     public async Task<IActionResult> CancelarReserva(string nombreClase, string dia, string hora)
     {
-        if (RequireLogin() is { } r) return r;
-
         var reserva = await _db.Reservas.FirstOrDefaultAsync(r =>
             r.IdSocio     == SocioId &&
             r.NombreClase == nombreClase &&
@@ -218,11 +202,9 @@ public class DashboardController : Controller
     [HttpGet]
     public async Task<IActionResult> QR()
     {
-        if (RequireLogin() is { } r) return r;
         var socio = await _db.Socios.FindAsync(SocioId);
         if (socio == null) return RedirectToAction("Logout", "Account");
 
-        // Generar imagen QR como base64
         var qrGen  = new QRCodeGenerator();
         var qrData = qrGen.CreateQrCode(socio.CodigoAcceso, QRCodeGenerator.ECCLevel.M);
         var qrCode = new PngByteQRCode(qrData);
@@ -239,13 +221,11 @@ public class DashboardController : Controller
     [HttpGet]
     public async Task<IActionResult> Progreso()
     {
-        if (RequireLogin() is { } r) return r;
         var socio = await _db.Socios.FindAsync(SocioId);
         if (socio == null) return RedirectToAction("Logout", "Account");
 
         var now = DateTime.UtcNow;
 
-        // Asistencia por mes (últimos 6 meses)
         var asistencias = await _db.Asistencias
             .Where(a => a.IdSocio == SocioId && a.Fecha >= now.AddMonths(-6))
             .ToListAsync();
@@ -255,9 +235,8 @@ public class DashboardController : Controller
             asistencias.Count(a => a.Fecha.Month == m.Month && a.Fecha.Year == m.Year)
         ).ToList();
 
-        var total    = asistencias.Count;
-        var racha    = await CalcularRacha(SocioId);
-        var mejorRacha = racha; // simplificado — se puede mejorar con más lógica
+        var total = asistencias.Count;
+        var racha = await CalcularRacha(SocioId);
 
         var vm = new ProgresoViewModel
         {
@@ -285,7 +264,6 @@ public class DashboardController : Controller
     [HttpGet]
     public async Task<IActionResult> Membresia()
     {
-        if (RequireLogin() is { } r) return r;
         var socio = await _db.Socios.FindAsync(SocioId);
         if (socio == null) return RedirectToAction("Logout", "Account");
 
