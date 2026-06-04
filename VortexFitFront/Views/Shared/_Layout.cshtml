@@ -193,12 +193,14 @@
         const installBtn    = document.getElementById('pwa-install-btn');
         const dismissBtn    = document.getElementById('pwa-dismiss-btn');
 
+        function showBanner()  { pwaBanner.style.display = 'block'; document.body.style.paddingBottom = '5.5rem'; }
+        function hideBanner()  { pwaBanner.style.display = 'none';  document.body.style.paddingBottom = ''; }
+
         window.addEventListener('beforeinstallprompt', e => {
             e.preventDefault();
             deferredPrompt = e;
-            // No mostrar si el usuario ya lo descartó antes
             if (sessionStorage.getItem('pwa-dismissed') !== '1') {
-                setTimeout(() => pwaBanner.style.display = 'block', 3000);
+                setTimeout(showBanner, 3000);
             }
         });
 
@@ -207,17 +209,17 @@
             deferredPrompt.prompt();
             const { outcome } = await deferredPrompt.userChoice;
             deferredPrompt = null;
-            pwaBanner.style.display = 'none';
+            hideBanner();
         });
 
         dismissBtn?.addEventListener('click', () => {
-            pwaBanner.style.display = 'none';
+            hideBanner();
             sessionStorage.setItem('pwa-dismissed', '1');
         });
 
         // Ocultar banner si la app ya está instalada
         window.addEventListener('appinstalled', () => {
-            pwaBanner.style.display = 'none';
+            hideBanner();
             deferredPrompt = null;
         });
     </script>

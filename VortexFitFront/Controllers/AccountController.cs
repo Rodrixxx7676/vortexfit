@@ -77,7 +77,7 @@ public class AccountController : Controller
             return View(model);
 
         // ── reCAPTCHA v3 ──────────────────────────────────
-        var captcha = await _recaptcha.VerifyAsync(model.RecaptchaToken, "login");
+        var captcha = await _recaptcha.VerifyAsync(model.RecaptchaToken ?? string.Empty, "login");
         if (!captcha.Success)
         {
             _logger.LogWarning("[SECURITY] reCAPTCHA fallido en login para {Email}", model.Email);
@@ -179,7 +179,7 @@ public class AccountController : Controller
             return View(model);
 
         // ── reCAPTCHA v3 ──────────────────────────────────
-        var captcha = await _recaptcha.VerifyAsync(model.RecaptchaToken, "register");
+        var captcha = await _recaptcha.VerifyAsync(model.RecaptchaToken ?? string.Empty, "register");
         if (!captcha.Success)
         {
             ModelState.AddModelError(string.Empty, "Verificación de seguridad fallida. Intenta de nuevo.");

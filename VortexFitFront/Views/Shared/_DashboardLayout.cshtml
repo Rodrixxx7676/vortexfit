@@ -20,6 +20,9 @@
 
     <!-- Font Awesome -->
     <script src="https://kit.fontawesome.com/dd3d90ac36.js" crossorigin="anonymous"></script>
+
+    <!-- Anti-flash: aplica el tema ANTES de pintar -->
+    <script>(function(){var t=localStorage.getItem('sg-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
 </head>
 <body class="dash-body">
 
@@ -35,6 +38,14 @@
             <a asp-controller="Dashboard" asp-action="Index"
                class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Index" ? "active" : "")">
                 <i class="fa-solid fa-house"></i> Mi panel
+            </a>
+            <a asp-controller="Dashboard" asp-action="Rutina"
+               class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Rutina" ? "active" : "")">
+                <i class="fa-solid fa-dumbbell"></i> Mi rutina
+            </a>
+            <a asp-controller="Dashboard" asp-action="Nutricion"
+               class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Nutricion" ? "active" : "")">
+                <i class="fa-solid fa-bowl-food"></i> Nutrición
             </a>
             <a asp-controller="Dashboard" asp-action="Clases"
                class="sidebar-link @(ViewContext.RouteData.Values["action"]?.ToString() == "Clases" ? "active" : "")">
@@ -102,17 +113,41 @@
     <!-- ══ CONTENIDO PRINCIPAL ══ -->
     <div class="dash-content">
 
-        <!-- Topbar móvil -->
+        <!-- ══ Topbar (siempre visible) ══ -->
         <div class="dash-topbar">
+            <!-- Hamburger (solo móvil) -->
             <button class="dash-menu-btn" id="menuBtn" aria-label="Abrir menú">
                 <span></span><span></span><span></span>
             </button>
+
+            <!-- Logo (solo móvil) -->
             <a href="/" class="dash-topbar-logo">
-                <img src="/images/stylegym_t.png?v=4" alt="Style Gym" style="height:26px; vertical-align:middle; margin-right:6px;">
+                <img src="/images/stylegym_t.png?v=4" alt="Style Gym" style="height:24px; vertical-align:middle; margin-right:6px;">
                 Style Gym
             </a>
-            <div class="dash-topbar-user">
-                @Context.Session.GetString("SocioNombre")?.Split(' ')[0]
+
+            <!-- Saludo (desktop) -->
+            <div class="topbar-page-title">
+                <span class="topbar-greeting">
+                    Hola, @(Context.Session.GetString("SocioNombre")?.Split(' ')[0] ?? "")
+                </span>
+                <span class="topbar-subtitle">Plan @Context.Session.GetString("SocioPlan")</span>
+            </div>
+
+            <!-- Controles derecha -->
+            <div class="topbar-right">
+                <button class="topbar-theme-btn btn-theme-toggle" aria-label="Cambiar tema" title="Cambiar tema">
+                    <i class="fa-solid fa-sun theme-icon"></i>
+                </button>
+                <div class="topbar-user-chip">
+                    <div class="topbar-avatar">
+                        @(Context.Session.GetString("SocioNombre")?[0].ToString().ToUpper() ?? "S")
+                    </div>
+                    <div class="topbar-user-text">
+                        <span class="topbar-user-name">@Context.Session.GetString("SocioNombre")</span>
+                        <span class="topbar-user-plan">Plan @Context.Session.GetString("SocioPlan")</span>
+                    </div>
+                </div>
             </div>
         </div>
 

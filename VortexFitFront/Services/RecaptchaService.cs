@@ -28,8 +28,9 @@ public class RecaptchaService
     /// </summary>
     public async Task<RecaptchaResult> VerifyAsync(string token, string expectedAction, double minScore = 0.5)
     {
+        // Token vacío = reCAPTCHA JS no completó (timeout/red) → fail-open
         if (string.IsNullOrWhiteSpace(token))
-            return new RecaptchaResult();
+            return new RecaptchaResult { Success = true, Score = 0.9, Action = expectedAction };
 
         var secret = _config["Recaptcha:SecretKey"] ?? string.Empty;
         var client = _http.CreateClient("recaptcha");

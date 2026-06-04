@@ -1,0 +1,203 @@
+@model VortexFit.Models.NutricionViewModel
+@{
+    ViewData["Title"] = "Mi Nutrición";
+    Layout = "_DashboardLayout";
+
+    // Calcular porcentajes de macros para la barra
+    // Proteínas: 4 kcal/g, Carbohidratos: 4 kcal/g, Grasas: 9 kcal/g
+    double protG = 0, carbG = 0, fatG = 0;
+    double.TryParse(Model.Proteinas.Replace("g","").Trim(), out protG);
+    double.TryParse(Model.Carbohidratos.Replace("g","").Trim(), out carbG);
+    double.TryParse(Model.Grasas.Replace("g","").Trim(), out fatG);
+
+    double totalKcal = protG * 4 + carbG * 4 + fatG * 9;
+    int pctProt = totalKcal > 0 ? (int)Math.Round(protG * 4 / totalKcal * 100) : 0;
+    int pctCarb = totalKcal > 0 ? (int)Math.Round(carbG * 4 / totalKcal * 100) : 0;
+    int pctFat  = totalKcal > 0 ? (int)Math.Round(fatG  * 9 / totalKcal * 100) : 0;
+
+    // Color según plan
+    var planColor = Model.Socio.Plan switch
+    {
+        "Elite"  => "#f97316",
+        "Pro"    => "#3DD9D9",
+        _        => "#8A9BB0"
+    };
+}
+
+<!-- Header -->
+<div class="dash-header">
+    <div>
+        <p class="dash-saludo">Tu plan de alimentación</p>
+        <h1 class="dash-nombre">
+            <i class="fa-solid fa-bowl-food" style="color:var(--primary);font-size:0.8em;margin-right:0.3rem;"></i>
+            Mi Nutrición
+        </h1>
+    </div>
+    <div class="dash-plan-badge" style="border-color:@planColor;color:@planColor;">
+        @{
+            var planIcon = Model.Socio.Plan switch { "Elite" => "fa-crown", "Pro" => "fa-bolt", _ => "fa-circle" };
+        }
+        <i class="fa-solid @planIcon"></i> Plan @Model.Socio.Plan
+    </div>
+</div>
+
+<!-- Badge de objetivo -->
+<div>
+    <span class="nutri-objetivo-badge">
+        <i class="fa-solid fa-bullseye"></i>
+        @Model.Objetivo
+    </span>
+</div>
+
+<!-- Stats de macros -->
+<div class="nutri-macro-stats">
+    <!-- Calorías (columna más ancha) -->
+    <div class="macro-stat">
+        <div class="macro-stat-icon" style="background:rgba(249,115,22,0.12);color:#fb923c;">
+            <i class="fa-solid fa-fire"></i>
+        </div>
+        <div class="macro-stat-body">
+            <span class="macro-stat-value" style="color:#fb923c;">@Model.CaloriasDiarias</span>
+            <span class="macro-stat-label">Calorías / día</span>
+        </div>
+    </div>
+
+    <!-- Proteínas -->
+    <div class="macro-stat">
+        <div class="macro-stat-icon" style="background:rgba(61,217,217,0.12);color:#67e8f9;">
+            <i class="fa-solid fa-drumstick-bite"></i>
+        </div>
+        <div class="macro-stat-body">
+            <span class="macro-stat-value" style="color:#67e8f9;">@Model.Proteinas</span>
+            <span class="macro-stat-label">Proteínas</span>
+        </div>
+    </div>
+
+    <!-- Carbohidratos -->
+    <div class="macro-stat">
+        <div class="macro-stat-icon" style="background:rgba(234,179,8,0.12);color:#fde68a;">
+            <i class="fa-solid fa-wheat-awn"></i>
+        </div>
+        <div class="macro-stat-body">
+            <span class="macro-stat-value" style="color:#fde68a;">@Model.Carbohidratos</span>
+            <span class="macro-stat-label">Carbohidratos</span>
+        </div>
+    </div>
+
+    <!-- Grasas -->
+    <div class="macro-stat">
+        <div class="macro-stat-icon" style="background:rgba(249,115,22,0.12);color:#fdba74;">
+            <i class="fa-solid fa-droplet"></i>
+        </div>
+        <div class="macro-stat-body">
+            <span class="macro-stat-value" style="color:#fdba74;">@Model.Grasas</span>
+            <span class="macro-stat-label">Grasas</span>
+        </div>
+    </div>
+</div>
+
+<!-- Barra de distribución de macros -->
+<div class="macro-bar-card">
+    <h3><i class="fa-solid fa-chart-pie"></i> Distribución calórica</h3>
+    <div class="macro-bar-track">
+        <div class="macro-bar-segment" style="width:@pctProt%;background:#67e8f9;"></div>
+        <div class="macro-bar-segment" style="width:@pctCarb%;background:#fde68a;"></div>
+        <div class="macro-bar-segment" style="width:@pctFat%;background:#fdba74;"></div>
+    </div>
+    <div class="macro-bar-legend">
+        <div class="macro-legend-item">
+            <div class="macro-legend-dot" style="background:#67e8f9;"></div>
+            <span>Proteínas @pctProt%</span>
+        </div>
+        <div class="macro-legend-item">
+            <div class="macro-legend-dot" style="background:#fde68a;"></div>
+            <span>Carbohidratos @pctCarb%</span>
+        </div>
+        <div class="macro-legend-item">
+            <div class="macro-legend-dot" style="background:#fdba74;"></div>
+            <span>Grasas @pctFat%</span>
+        </div>
+    </div>
+</div>
+
+<!-- Comidas del día -->
+<div class="comidas-list">
+    @for (int i = 0; i < Model.Comidas.Count; i++)
+    {
+        var comida = Model.Comidas[i];
+        var isFirst = i == 0;
+        <div class="comida-card">
+            <div class="comida-header @(isFirst ? "is-open" : "")"
+                 onclick="toggleComida(this)">
+                <div class="comida-icon" style="background:@($"{comida.Color}18");color:@comida.Color;">
+                    <i class="fa-solid @comida.Icono"></i>
+                </div>
+                <div class="comida-info">
+                    <span class="comida-tipo">@comida.Tipo</span>
+                    <span class="comida-hora">
+                        <i class="fa-regular fa-clock"></i>
+                        @comida.Hora
+                    </span>
+                </div>
+                <div class="comida-kcal-wrap">
+                    <div class="comida-kcal">
+                        <span class="comida-kcal-num" style="color:@comida.Color;">@comida.Calorias</span>
+                        <span class="comida-kcal-label">kcal</span>
+                    </div>
+                    <i class="fa-solid fa-chevron-down comida-toggle"></i>
+                </div>
+            </div>
+
+            <div class="comida-items @(isFirst ? "is-open" : "")">
+                @foreach (var item in comida.Items)
+                {
+                    <div class="comida-item-row">
+                        <div class="item-main">
+                            <span class="item-nombre">@item.Nombre</span>
+                            <span class="item-porcion">@item.Porcion</span>
+                        </div>
+                        <div class="item-macros">
+                            @if (item.Proteina != null)
+                            {
+                                <span class="item-macro-chip chip-prot">P @item.Proteina</span>
+                            }
+                            @if (item.Carbs != null)
+                            {
+                                <span class="item-macro-chip chip-carb">C @item.Carbs</span>
+                            }
+                            @if (item.Grasas != null)
+                            {
+                                <span class="item-macro-chip chip-fat">G @item.Grasas</span>
+                            }
+                        </div>
+                    </div>
+                }
+            </div>
+        </div>
+    }
+</div>
+
+<!-- Consejos nutricionales -->
+<div class="consejos-card">
+    <h3>
+        <i class="fa-solid fa-lightbulb"></i>
+        Consejos de tu plan
+    </h3>
+    <ul class="consejos-list">
+        @foreach (var tip in Model.Consejos)
+        {
+            <li>@tip</li>
+        }
+    </ul>
+</div>
+
+@section Scripts {
+<script>
+function toggleComida(header) {
+    const isOpen = header.classList.contains('is-open');
+    const items  = header.nextElementSibling;
+    header.classList.toggle('is-open', !isOpen);
+    items.classList.toggle('is-open', !isOpen);
+}
+</script>
+}

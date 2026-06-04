@@ -128,16 +128,29 @@ var app = builder.Build();
     if (sinCodigo.Any())
         await db.SaveChangesAsync();
 
-    // ── VAPID keys: generar si no están configuradas ───
-    var vapid = app.Configuration.GetSection("Vapid");
-    if (string.IsNullOrEmpty(vapid["PublicKey"]))
+    // ── VAPID keys: generar una sola vez y persistir ──
+    var vapidSection = app.Configuration.GetSection("Vapid");
+    var keysFile     = Path.Combine(Directory.GetCurrentDirectory(), "vapid-keys.json");
+
+    // Si ya existen en vapid-keys.json, leerlos (persisten entre reinicios)
+    if (string.IsNullOrEmpty(vapidSection["PublicKey"]) && System.IO.File.Exists(keysFile))
     {
-        var keys    = VapidHelper.GenerateVapidKeys();
-        var keysFile = Path.Combine(Directory.GetCurrentDirectory(), "vapid-keys.json");
-        await File.WriteAllTextAsync(keysFile,
+        var saved = System.Text.Json.JsonDocument.Parse(await System.IO.File.ReadAllTextAsync(keysFile)).RootElement;
+        var pub   = saved.GetProperty("PublicKey").GetString() ?? string.Empty;
+        var priv  = saved.GetProperty("PrivateKey").GetString() ?? string.Empty;
+        app.Configuration["Vapid:PublicKey"]  = pub;
+        app.Configuration["Vapid:PrivateKey"] = priv;
+        app.Logger.LogInformation("VAPID keys cargados desde vapid-keys.json");
+    }
+    else if (string.IsNullOrEmpty(vapidSection["PublicKey"]))
+    {
+        // Primera vez: generar y guardar
+        var keys = VapidHelper.GenerateVapidKeys();
+        await System.IO.File.WriteAllTextAsync(keysFile,
             $"{{\"PublicKey\":\"{keys.PublicKey}\",\"PrivateKey\":\"{keys.PrivateKey}\"}}");
-        app.Logger.LogWarning("VAPID keys generados y guardados en vapid-keys.json");
-        app.Logger.LogWarning("VAPID Public:  {Key}", keys.PublicKey);
+        app.Configuration["Vapid:PublicKey"]  = keys.PublicKey;
+        app.Configuration["Vapid:PrivateKey"] = keys.PrivateKey;
+        app.Logger.LogWarning("VAPID keys generados por primera vez → vapid-keys.json");
     }
 }
 

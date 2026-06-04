@@ -1,0 +1,171 @@
+@model VortexFit.Models.RutinaViewModel
+@{
+    ViewData["Title"] = "Mi Rutina";
+    Layout = "_DashboardLayout";
+
+    // Determinar el día activo (0=Lunes…6=Domingo)
+    // C# DayOfWeek: 0=Dom, 1=Lun…6=Sáb  → mapeamos a índice Semana
+    var diaSemana = (int)DateTime.Now.DayOfWeek;
+    int diaActivo = diaSemana switch
+    {
+        0 => 6, // Domingo  → índice 6
+        1 => 0, // Lunes    → índice 0
+        2 => 1, // Martes   → índice 1
+        3 => 2, // Miércoles→ índice 2
+        4 => 3, // Jueves   → índice 3
+        5 => 4, // Viernes  → índice 4
+        6 => 5, // Sábado   → índice 5
+        _ => 0
+    };
+    // Asegurarnos de no salir del rango de la semana
+    if (diaActivo >= Model.Semana.Count) diaActivo = 0;
+
+    // Colores por plan
+    var planColor = Model.Socio.Plan switch
+    {
+        "Elite"  => "#f97316",
+        "Pro"    => "#3DD9D9",
+        _        => "#8A9BB0"
+    };
+}
+
+<!-- Header -->
+<div class="dash-header">
+    <div>
+        <p class="dash-saludo">Tu programa semanal</p>
+        <h1 class="dash-nombre">
+            <i class="fa-solid fa-dumbbell" style="color:var(--primary);font-size:0.8em;margin-right:0.3rem;"></i>
+            Mi Rutina
+        </h1>
+    </div>
+    <div class="dash-plan-badge" style="border-color:@planColor;color:@planColor;">
+        @{
+            var planIcon = Model.Socio.Plan switch { "Elite" => "fa-crown", "Pro" => "fa-bolt", _ => "fa-circle" };
+        }
+        <i class="fa-solid @planIcon"></i> Plan @Model.Socio.Plan
+    </div>
+</div>
+
+<!-- Tarjeta de información general -->
+<div class="dash-card rutina-info-card">
+    <div class="rutina-info-grid">
+        <div class="rutina-info-item">
+            <i class="fa-solid fa-bullseye"></i>
+            <div>
+                <span class="rutina-info-label">Objetivo</span>
+                <span class="rutina-info-value">@Model.Objetivo</span>
+            </div>
+        </div>
+        <div class="rutina-info-item">
+            <i class="fa-solid fa-user-tie"></i>
+            <div>
+                <span class="rutina-info-label">Entrenador asignado</span>
+                <span class="rutina-info-value">@Model.Entrenador</span>
+            </div>
+        </div>
+        <div class="rutina-info-item">
+            <i class="fa-solid fa-calendar-week"></i>
+            <div>
+                <span class="rutina-info-label">Días de entrenamiento</span>
+                <span class="rutina-info-value">@Model.Semana.Count(d => !d.Descanso) días / semana</span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Tabs de días -->
+<div class="rutina-days" id="rutinaDays">
+    @for (int i = 0; i < Model.Semana.Count; i++)
+    {
+        var dia = Model.Semana[i];
+        <button class="rutina-day-btn @(i == diaActivo ? "active" : "")"
+                style="--day-color: @dia.Color"
+                onclick="showRutinaDay(@i)"
+                type="button">
+            <span class="rutina-day-abrev">@dia.Abrev</span>
+            <span class="rutina-day-tipo">@(dia.Descanso ? "Desc." : (dia.Tipo.Length > 6 ? dia.Tipo[..6] + "…" : dia.Tipo))</span>
+        </button>
+    }
+</div>
+
+<!-- Contenido por día -->
+@for (int i = 0; i < Model.Semana.Count; i++)
+{
+    var dia = Model.Semana[i];
+    <div class="rutina-day-content @(i == diaActivo ? "active" : "")" id="rutina-day-@i">
+
+        <!-- Encabezado del día -->
+        <div class="rutina-day-header">
+            <div class="rutina-day-icon" style="background:@($"{dia.Color}20");color:@dia.Color;">
+                <i class="fa-solid @dia.Icono"></i>
+            </div>
+            <div>
+                <h2>@dia.Dia</h2>
+                <span class="rutina-tipo-badge" style="background:@($"{dia.Color}18");color:@dia.Color;">@dia.Tipo</span>
+            </div>
+        </div>
+
+        @if (dia.Descanso)
+        {
+            <!-- Día de descanso -->
+            <div class="rutina-descanso">
+                <i class="fa-solid @dia.Icono descanso-main-icon" style="color:@dia.Color;"></i>
+                <h3>Día de descanso</h3>
+                <p>El descanso es parte esencial del entrenamiento. Tu cuerpo se recupera y el músculo crece durante el reposo.</p>
+                @if (dia.Tipo.Contains("activo", StringComparison.OrdinalIgnoreCase))
+                {
+                    <div class="descanso-activo-tip">
+                        <i class="fa-solid fa-person-walking"></i>
+                        <span>Descanso activo sugerido: 20–30 min de caminata ligera o sesión de stretching.</span>
+                    </div>
+                }
+            </div>
+        }
+        else
+        {
+            <!-- Grid de ejercicios -->
+            <div class="ejercicios-grid">
+                @foreach (var ej in dia.Ejercicios)
+                {
+                    <div class="ejercicio-card">
+                        <div class="ejercicio-icon-wrap" style="background:@($"{ej.Color}18");color:@ej.Color;">
+                            <i class="fa-solid @ej.Icono"></i>
+                        </div>
+                        <div class="ejercicio-body">
+                            <div class="ejercicio-nombre">@ej.Nombre</div>
+                            <div class="ejercicio-musculo">
+                                <i class="fa-solid fa-circle-dot"></i>
+                                @ej.Musculo
+                            </div>
+                            @if (ej.Nota != null)
+                            {
+                                <div class="ejercicio-nota">
+                                    <i class="fa-solid fa-circle-info"></i>
+                                    @ej.Nota
+                                </div>
+                            }
+                        </div>
+                        <div class="ejercicio-series-badge" style="background:@($"{ej.Color}18");color:@ej.Color;">
+                            @ej.Series
+                        </div>
+                    </div>
+                }
+            </div>
+        }
+    </div>
+}
+
+@section Scripts {
+<script>
+function showRutinaDay(index) {
+    document.querySelectorAll('.rutina-day-content').forEach((el, i) => {
+        el.classList.toggle('active', i === index);
+    });
+    document.querySelectorAll('.rutina-day-btn').forEach((el, i) => {
+        el.classList.toggle('active', i === index);
+    });
+    // Scroll al inicio del contenido en móvil
+    document.getElementById('rutina-day-' + index)?.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+</script>
+}

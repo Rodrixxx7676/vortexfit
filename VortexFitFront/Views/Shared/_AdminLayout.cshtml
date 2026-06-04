@@ -16,6 +16,9 @@
 
     <!-- Font Awesome -->
     <script src="https://kit.fontawesome.com/dd3d90ac36.js" crossorigin="anonymous"></script>
+
+    <!-- Anti-flash: aplica el tema ANTES de pintar -->
+    <script>(function(){var t=localStorage.getItem('sg-theme')||'dark';document.documentElement.setAttribute('data-theme',t);})();</script>
 </head>
 <body class="dash-body">
 
@@ -102,16 +105,42 @@
 
     <!-- ══ CONTENIDO ══ -->
     <div class="dash-content">
+        <!-- ══ Topbar Admin ══ -->
         <div class="dash-topbar">
+            <!-- Hamburger (solo móvil) -->
             <button class="dash-menu-btn" id="menuBtn" aria-label="Abrir menú">
                 <span></span><span></span><span></span>
             </button>
+
+            <!-- Logo (solo móvil) -->
             <a href="/Admin" class="dash-topbar-logo">
                 <i class="fa-solid fa-shield-halved" style="color:var(--admin-accent);margin-right:6px;"></i>
                 Panel Admin
             </a>
-            <div class="dash-topbar-user">
-                @Context.Session.GetString("SocioNombre")?.Split(' ')[0]
+
+            <!-- Título (desktop) -->
+            <div class="topbar-page-title">
+                <span class="topbar-greeting">
+                    <i class="fa-solid fa-shield-halved" style="color:var(--admin-accent);font-size:0.85em;margin-right:4px;"></i>
+                    Panel de Administración
+                </span>
+                <span class="topbar-subtitle">Style Gym — Acceso privilegiado</span>
+            </div>
+
+            <!-- Controles derecha -->
+            <div class="topbar-right">
+                <button class="topbar-theme-btn btn-theme-toggle" aria-label="Cambiar tema" title="Cambiar tema">
+                    <i class="fa-solid fa-sun theme-icon"></i>
+                </button>
+                <div class="topbar-user-chip" style="border-color: rgba(251,146,60,0.3);">
+                    <div class="topbar-avatar" style="background: linear-gradient(135deg, var(--admin-accent), #fb923c);">
+                        <i class="fa-solid fa-shield-halved" style="font-size:0.75rem; color:#0a0a0a;"></i>
+                    </div>
+                    <div class="topbar-user-text">
+                        <span class="topbar-user-name">@Context.Session.GetString("SocioNombre")</span>
+                        <span class="topbar-user-plan" style="color: var(--admin-accent);">Administrador</span>
+                    </div>
+                </div>
             </div>
         </div>
 
